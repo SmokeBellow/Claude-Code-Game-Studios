@@ -36,6 +36,7 @@ signal hp_changed(new_hp: int, max_hp: int)
 signal damage_taken(amount: int, position: Vector2)
 
 func _ready() -> void:
+	add_to_group("player")
 	hp_changed.emit(hp, MAX_HP)
 
 func _physics_process(delta: float) -> void:
@@ -130,7 +131,7 @@ func _spawn_hitbox(at: Vector2, radius: float, damage: int, is_nova: bool = fals
 	area.add_child(shape)
 	area.position = at
 	area.collision_layer = 0
-	area.collision_mask = 4  # Enemy layer (layer 3)
+	area.collision_mask = 8  # Enemy layer (layer 4)
 	get_tree().current_scene.add_child(area)
 
 	# Give physics one frame to detect overlaps
