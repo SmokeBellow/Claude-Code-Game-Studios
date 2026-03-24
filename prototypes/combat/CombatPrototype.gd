@@ -49,7 +49,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	# Update ability cooldown display
 	if is_instance_valid(player):
-		var cd := player.ability_cd_timer
+		var cd: float = player.ability_cd_timer
 		ability_label.text = "Ability [RMB]: " + ("READY" if cd <= 0 else "%.1fs" % cd)
 
 func _connect_enemy(enemy: Node) -> void:
