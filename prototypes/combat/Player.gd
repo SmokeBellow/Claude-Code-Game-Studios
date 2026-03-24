@@ -121,24 +121,10 @@ func take_damage(amount: int) -> void:
 	if hp <= 0:
 		died.emit()
 
-# Spawns an Area2D hitbox that damages enemies once then frees itself.
+# Damages enemies within radius using direct distance check (no collision layers needed).
 func _spawn_hitbox(at: Vector2, radius: float, damage: int, is_nova: bool = false) -> void:
-	var area := Area2D.new()
-	var shape := CollisionShape2D.new()
-	var circle := CircleShape2D.new()
-	circle.radius = radius
-	shape.shape = circle
-	area.add_child(shape)
-	area.position = at
-	area.collision_layer = 0
-	area.collision_mask = 8  # Enemy layer (layer 4)
-	get_tree().current_scene.add_child(area)
-
-	# Give physics one frame to detect overlaps
 	await get_tree().physics_frame
-
-	for body in area.get_overlapping_bodies():
-		if body.has_method("take_damage"):
-			body.take_damage(damage)
-
-	area.queue_free()
+	for body in get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(body) and body.has_method("take_damage"):
+			if at.distance_to(body.global_position) <= radius:
+				body.take_damage(damage)

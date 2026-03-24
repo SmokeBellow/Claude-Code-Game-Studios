@@ -27,6 +27,7 @@ signal died(enemy: Node)
 signal damage_taken(amount: int, position: Vector2)
 
 func _ready() -> void:
+	add_to_group("enemies")
 	patrol_direction = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
 	patrol_timer = randf_range(1.5, 3.0)
 	# Find player (prototype: assume it's in group "player")
