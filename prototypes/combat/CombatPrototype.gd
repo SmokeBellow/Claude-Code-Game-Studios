@@ -19,7 +19,7 @@
 
 extends Node2D
 
-@onready var player         : CharacterBody2D = $Player
+@onready var player = $Player
 @onready var enemies_root   : Node2D          = $Enemies
 @onready var player_hp_bar  : ProgressBar     = $UI/PlayerHP
 @onready var ability_label  : Label           = $UI/AbilityCD
@@ -49,7 +49,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	# Update ability cooldown display
 	if is_instance_valid(player):
-		var cd: float = player.ability_cd_timer
+		var cd := player.ability_cd_timer as float
 		ability_label.text = "Ability [RMB]: " + ("READY" if cd <= 0 else "%.1fs" % cd)
 
 func _connect_enemy(enemy: Node) -> void:
