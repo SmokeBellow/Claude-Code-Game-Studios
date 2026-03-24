@@ -33,9 +33,10 @@ func _ready() -> void:
 	player.hp_changed.connect(_on_player_hp_changed)
 	player.damage_taken.connect(_on_damage_taken)
 	player.died.connect(_on_player_died)
-	# Инициализируем HP bar вручную — сигнал уже ушёл до подключения
+	# Init HP bar directly (signal fires before connection in child _ready)
+	player_hp_bar.min_value = 0
 	player_hp_bar.max_value = player.MAX_HP
-	player_hp_bar.value     = player.hp
+	player_hp_bar.value     = player.MAX_HP
 
 	# Connect enemy signals
 	for enemy in enemies_root.get_children():

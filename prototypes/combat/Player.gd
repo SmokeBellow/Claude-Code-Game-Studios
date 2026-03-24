@@ -37,7 +37,9 @@ signal damage_taken(amount: int, position: Vector2)
 
 func _ready() -> void:
 	add_to_group("player")
-	hp_changed.emit(hp, MAX_HP)
+	# Add camera so screen follows player
+	var cam := Camera2D.new()
+	add_child(cam)
 
 func _physics_process(delta: float) -> void:
 	_tick_timers(delta)
@@ -65,8 +67,7 @@ func _start_attack() -> void:
 	is_attacking = true
 	attack_timer = ATTACK_DURATION
 	attack_cd_timer = ATTACK_COOLDOWN
-	# Spawn hitbox in facing direction
-	_spawn_hitbox(position + facing * (ATTACK_RANGE * 0.5), ATTACK_RANGE * 0.5, ATTACK_DAMAGE)
+	_spawn_hitbox(global_position + facing * (ATTACK_RANGE * 0.5), ATTACK_RANGE * 0.5, ATTACK_DAMAGE)
 
 func _start_dodge() -> void:
 	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -79,7 +80,7 @@ func _start_dodge() -> void:
 func _use_ability() -> void:
 	ability_cd_timer = ABILITY_COOLDOWN
 	# Nova burst: damages all enemies in radius
-	_spawn_hitbox(position, ABILITY_RADIUS, ABILITY_DAMAGE, true)
+	_spawn_hitbox(global_position, ABILITY_RADIUS, ABILITY_DAMAGE, true)
 	# Visual flash (placeholder — replace with particles in production)
 	modulate = Color(2.0, 1.5, 0.2)
 	await get_tree().create_timer(0.12).timeout
