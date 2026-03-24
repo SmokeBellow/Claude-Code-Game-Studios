@@ -2,6 +2,7 @@
 # Question: Does real-time top-down combat feel satisfying in Godot 4.6?
 # Date: 2026-03-23
 
+class_name DamageNumber
 extends Label
 
 # Floating damage number — spawned at hit position, floats up and fades.
@@ -30,7 +31,7 @@ func _process(delta: float) -> void:
 # Factory method — call this to spawn a damage number in the scene.
 static func spawn(scene_root: Node, amount: int, world_pos: Vector2) -> void:
 	var label := Label.new()
-	label.set_script(load("res://prototypes/combat/DamageNumber.gd"))
+	label.set_script(load("res://DamageNumber.gd"))
 	label.text = str(amount)
 	label.position = world_pos + Vector2(randf_range(-10, 10), -20)
 	scene_root.add_child(label)
