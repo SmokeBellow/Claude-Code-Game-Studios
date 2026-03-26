@@ -13,9 +13,6 @@ extends CharacterBody2D
 # Сигналы
 # ---------------------------------------------------------------------------
 
-## Испускается за `attack_windup` секунд до удара. Combat System слушает для парирования.
-signal enemy_attack_started(attacker: Node, damage: float)
-
 ## Испускается при смерти. LevelXPSystem и LootSystem слушают.
 signal enemy_died(xp_reward: int, enemy_data: EnemyData)
 

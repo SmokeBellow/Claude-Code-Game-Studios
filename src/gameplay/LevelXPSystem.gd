@@ -102,12 +102,13 @@ func xp_floor(level: int) -> int:
 func _check_level_up() -> void:
 	# Обрабатываем несколько level_up подряд (переполнение XP).
 	while current_level < MAX_LEVEL and current_xp >= xp_to_next_level(current_level):
+		current_xp -= xp_to_next_level(current_level)
 		current_level += 1
 		level_up.emit(current_level, ATTRIBUTE_POINTS_PER_LEVEL)
 
 	# Зажимаем XP на уровне MAX_LEVEL.
 	if current_level >= MAX_LEVEL:
-		current_xp = xp_floor(MAX_LEVEL)
+		current_xp = 0
 
 # ---------------------------------------------------------------------------
 # Обработчики сигналов
@@ -118,7 +119,7 @@ func _on_enemy_died(xp_reward: int, _enemy_data: EnemyData) -> void:
 
 
 func _on_player_died() -> void:
-	# Штраф смерти: сбросить XP до нижней границы текущего уровня.
-	current_xp = xp_floor(current_level)
+	# Штраф смерти: сбросить прогресс XP до нижней границы текущего уровня.
+	current_xp = 0
 	xp_updated.emit(current_xp, xp_to_next_level(current_level))
-	print("Death penalty: XP сброшен до ", current_xp, " (floor уровня ", current_level, ")")
+	print("Death penalty: XP сброшен до 0 (floor уровня ", current_level, ")")

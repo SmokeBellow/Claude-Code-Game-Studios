@@ -57,6 +57,7 @@ var _target_velocity: Vector2 = Vector2.ZERO
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
+	add_to_group("player")
 	if health != null:
 		health.died.connect(on_died)
 
