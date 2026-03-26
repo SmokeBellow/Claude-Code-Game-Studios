@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://cf2q4hi6nsc6l" path="res://scenes/hud.tscn" id="6_tefeu"]
 [ext_resource type="Script" uid="uid://p0qcu04o5tcn" path="res://src/gameplay/RoomManager.gd" id="7_85g3d"]
 [ext_resource type="Resource" uid="uid://cnsf4abeg1ptt" path="res://assets/data/rooms/room_normal.tres" id="8_choun"]
+[ext_resource type="Script" uid="uid://dal6regx8s8d2" path="res://src/ui/AttributeScreen.gd" id="9_85g3d"]
 [ext_resource type="Resource" uid="uid://b8eymlfd5fagb" path="res://assets/data/rooms/room_boss.tres" id="9_ya4ey"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_jyhfs"]
@@ -14,10 +15,11 @@ vertices = PackedVector2Array(1094.5, 104.453125, 1186.1484, 624.39844, 180.1328
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 outlines = Array[PackedVector2Array]([PackedVector2Array(115, 28, 1103, 95, 1198, 634, 171, 669)])
 
-[node name="Main" type="Node2D" unique_id=2024175462 node_paths=PackedStringArray("level_xp", "hud")]
+[node name="Main" type="Node2D" unique_id=2024175462 node_paths=PackedStringArray("level_xp", "hud", "attribute_screen")]
 script = ExtResource("1_tbgi4")
 level_xp = NodePath("LevelXPSystem")
 hud = NodePath("HUD")
+attribute_screen = NodePath("AttributeScreen")
 
 [node name="Player" parent="." unique_id=263356863 instance=ExtResource("1_o5qli")]
 z_index = 1
@@ -40,6 +42,18 @@ position = Vector2(218, 126)
 [node name="MeleeEnemy4" parent="." unique_id=1781770870 instance=ExtResource("3_sugp2")]
 position = Vector2(896, 163)
 
+[node name="MeleeEnemy5" parent="." unique_id=825798765 instance=ExtResource("3_sugp2")]
+position = Vector2(896, 163)
+
+[node name="MeleeEnemy6" parent="." unique_id=545365862 instance=ExtResource("3_sugp2")]
+position = Vector2(896, 163)
+
+[node name="MeleeEnemy7" parent="." unique_id=1716146659 instance=ExtResource("3_sugp2")]
+position = Vector2(896, 163)
+
+[node name="MeleeEnemy8" parent="." unique_id=1417624683 instance=ExtResource("3_sugp2")]
+position = Vector2(896, 163)
+
 [node name="HUD" parent="." unique_id=605276330 instance=ExtResource("6_tefeu")]
 
 [node name="RoomManager" type="Node" parent="." unique_id=1985693718 node_paths=PackedStringArray("player")]
@@ -48,3 +62,6 @@ normal_room_data = ExtResource("8_choun")
 boss_room_data = ExtResource("9_ya4ey")
 enemy_scene = ExtResource("3_sugp2")
 player = NodePath("../Player")
+
+[node name="AttributeScreen" type="CanvasLayer" parent="." unique_id=90128062]
+script = ExtResource("9_85g3d")

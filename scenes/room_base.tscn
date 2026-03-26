@@ -11,6 +11,7 @@ size = Vector2(80, 40)
 z_index = -1
 offset_right = 1000.0
 offset_bottom = 600.0
+mouse_filter = 2
 color = Color(0.21651274, 0.5298592, 0.8406347, 1)
 
 [node name="DoorNorth" type="Area2D" parent="." unique_id=1225517379]
@@ -54,4 +55,13 @@ position = Vector2(587, 377)
 position = Vector2(817, 392)
 
 [node name="SpawnPoint4" type="Node2D" parent="." unique_id=518279573 groups=["spawnpoint"]]
-position = Vector2(619, 118)
+position = Vector2(675, 85)
+
+[node name="SpawnPoint5" type="Node2D" parent="." unique_id=2102818301 groups=["spawnpoint"]]
+position = Vector2(554, 110)
+
+[node name="SpawnPoint6" type="Node2D" parent="." unique_id=748265071 groups=["spawnpoint"]]
+position = Vector2(445, 285)
+
+[node name="SpawnPoint7" type="Node2D" parent="." unique_id=1001030903 groups=["spawnpoint"]]
+position = Vector2(344, 171)

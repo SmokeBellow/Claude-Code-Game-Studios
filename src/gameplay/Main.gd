@@ -7,8 +7,10 @@ extends Node2D
 
 @export var level_xp: LevelXPSystem
 @export var hud: HUD
+@export var attribute_screen: AttributeScreen
 
 func _ready() -> void:
+	get_tree().paused = false  # сброс на случай застрявшей паузы
 	# Находим CombatComponent игрока один раз.
 	var combat: CombatComponent = null
 	for player in get_tree().get_nodes_in_group("player"):
@@ -25,7 +27,7 @@ func _ready() -> void:
 			# Числа урона на врагах (белые).
 			var enemy_hp := enemy.get_node_or_null("HealthComponent") as HealthComponent
 			if enemy_hp != null:
-				enemy_hp.damaged.connect(func(amt): DamageNumber.spawn(self, enemy.global_position, amt, false))
+				enemy_hp.damaged.connect(func(amt): DamageNumber.spawn(self, enemy.global_position, amt))
 
 	if level_xp == null:
 		return
@@ -39,11 +41,13 @@ func _ready() -> void:
 				hud.connect_components(health, level_xp)
 			# Числа урона на игроке (красные).
 			var p := player as Node2D
-			health.damaged.connect(func(amt): DamageNumber.spawn(self, p.global_position, amt, true))
+			health.damaged.connect(func(amt): DamageNumber.spawn_player(self, p.global_position, amt))
 
-	# Логируем level_up для теста.
+	# Показываем экран прокачки при level up.
 	level_xp.level_up.connect(func(lvl, pts):
 		print("LEVEL UP! Уровень: ", lvl, " | Получено очков: ", pts)
+		if attribute_screen != null:
+			attribute_screen.show_level_up(lvl, pts)
 	)
 	level_xp.xp_gained.connect(func(amount, source):
 		print("+", amount, " XP (", source, ") | Всего: ", level_xp.current_xp)

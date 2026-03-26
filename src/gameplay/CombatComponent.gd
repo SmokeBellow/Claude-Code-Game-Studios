@@ -175,11 +175,11 @@ func _do_counter_attack() -> void:
 
 func _apply_hitbox(is_counter: bool) -> void:
 	if player == null:
+		print("_apply_hitbox: player is null!")
 		return
 	var facing: Vector2 = player.facing_direction
 	var origin: Vector2 = player.global_position
 	var half_arc: float = deg_to_rad(hitbox_half_arc_deg)
-
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not enemy is Node2D:
 			continue

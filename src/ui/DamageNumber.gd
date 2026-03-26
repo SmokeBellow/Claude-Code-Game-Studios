@@ -6,16 +6,22 @@ extends Label
 const FLOAT_DISTANCE: float = 40.0
 const DURATION: float = 0.8
 
-## Создаёт число урона в мировых координатах.
-## [param parent] — узел сцены (например get_tree().current_scene).
-static func spawn(parent: Node, world_pos: Vector2, amount: float, is_player: bool = false) -> void:
+## Создаёт белое число урона (для врагов).
+static func spawn(parent: Node, world_pos: Vector2, amount: float) -> void:
 	var dn := DamageNumber.new()
 	dn.text = str(int(amount))
 	dn.z_index = 10
+	dn.modulate = Color.WHITE
+	parent.add_child(dn)
+	dn.global_position = world_pos + Vector2(randf_range(-12.0, 12.0), -16.0)
+	dn._animate()
 
-	# Цвет: красный для игрока, белый для врагов.
-	dn.modulate = Color(1.0, 0.3, 0.3) if is_player else Color.WHITE
-
+## Создаёт красное число урона (для игрока).
+static func spawn_player(parent: Node, world_pos: Vector2, amount: float) -> void:
+	var dn := DamageNumber.new()
+	dn.text = str(int(amount))
+	dn.z_index = 10
+	dn.modulate = Color(1.0, 0.3, 0.3)
 	parent.add_child(dn)
 	dn.global_position = world_pos + Vector2(randf_range(-12.0, 12.0), -16.0)
 	dn._animate()
