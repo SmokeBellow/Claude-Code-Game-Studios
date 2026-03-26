@@ -17,6 +17,8 @@ extends CharacterBody2D
 @export var stats: StatsComponent
 ## HealthComponent игрока. Подключить died → on_died() в редакторе или в _ready().
 @export var health: HealthComponent
+## Способность рывка (Q). Подключи DashAbility .tres в инспекторе.
+@export var dash: DashAbility
 
 # ---------------------------------------------------------------------------
 # Tuning knobs (используются только если stats == null)
@@ -65,12 +67,22 @@ func _physics_process(delta: float) -> void:
 	var safe_delta: float = minf(delta, MAX_DELTA)
 	_update_facing()
 
-	if is_movement_locked:
+	if dash != null:
+		dash.update(safe_delta)
+
+	var dashing: bool = dash != null and dash._is_dashing
+	if dashing:
+		pass  # velocity управляется DashAbility
+	elif is_movement_locked:
 		velocity = Vector2.ZERO
 	else:
 		_update_movement(safe_delta)
 
 	move_and_slide()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ability_primary") and dash != null:
+		dash.activate(self)
 
 # ---------------------------------------------------------------------------
 # Публичный API
@@ -98,8 +110,6 @@ func _update_movement(delta: float) -> void:
 	)
 
 	var speed: float = stats.move_speed() if stats != null else move_speed_fallback
-	if Input.is_action_pressed("sprint") and input_dir != Vector2.ZERO:
-		speed *= sprint_multiplier
 
 	_target_velocity = input_dir.normalized() * speed
 	velocity = velocity.lerp(_target_velocity, acceleration * delta)

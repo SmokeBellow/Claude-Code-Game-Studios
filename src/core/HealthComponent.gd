@@ -50,6 +50,7 @@ var current_mana: float = 0.0
 
 ## Истина если сущность мертва. После смерти все операции с HP игнорируются.
 var is_dead: bool = false
+var is_invincible: bool = false
 
 var _regen_cooldown: float = 0.0
 var _between_rooms_mode: bool = false
@@ -86,8 +87,12 @@ func _process(delta: float) -> void:
 
 ## Наносит урон. HP не уходит в минус. Испускает [signal died] при HP=0.
 ## [br]Вызывается Боевой системой (#9).
+## Включает или выключает неуязвимость (используется Dash и парированием).
+func set_invincible(value: bool) -> void:
+	is_invincible = value
+
 func take_damage(amount: float) -> void:
-	if is_dead:
+	if is_dead or is_invincible:
 		return
 	_regen_cooldown = regen_cooldown_duration
 	current_hp = maxf(0.0, current_hp - amount)

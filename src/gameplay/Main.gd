@@ -22,6 +22,10 @@ func _ready() -> void:
 				level_xp.connect_enemy(enemy)
 			if combat != null:
 				combat.connect_enemy(enemy)
+			# Числа урона на врагах (белые).
+			var enemy_hp := enemy.get_node_or_null("HealthComponent") as HealthComponent
+			if enemy_hp != null:
+				enemy_hp.damaged.connect(func(amt): DamageNumber.spawn(self, enemy.global_position, amt, false))
 
 	if level_xp == null:
 		return
@@ -33,6 +37,9 @@ func _ready() -> void:
 			level_xp.connect_player_health(health)
 			if hud != null:
 				hud.connect_components(health, level_xp)
+			# Числа урона на игроке (красные).
+			var p := player as Node2D
+			health.damaged.connect(func(amt): DamageNumber.spawn(self, p.global_position, amt, true))
 
 	# Логируем level_up для теста.
 	level_xp.level_up.connect(func(lvl, pts):
