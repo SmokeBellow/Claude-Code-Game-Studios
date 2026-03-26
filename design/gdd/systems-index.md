@@ -23,18 +23,18 @@ Vertical Slice, 1 для Polish.
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Здоровье и статы | Core | MVP | Not Started | — | — |
-| 2 | Движение игрока | Core | MVP | Not Started | — | — |
-| 3 | База данных предметов (inferred) | Economy | MVP | Not Started | — | — |
+| 1 | Здоровье и статы | Core | MVP | Approved | design/gdd/health-stats.md | — |
+| 2 | Движение игрока | Core | MVP | Approved | design/gdd/player-movement.md | — |
+| 3 | База данных предметов | Economy | MVP | Approved | design/gdd/item-database.md | — |
 | 4 | Тайлмап / уровни (inferred) | Core | MVP | Not Started | — | — |
 | 5 | Камера (inferred) | Core | MVP | Not Started | — | — |
 | 6 | Аудио-менеджер (inferred) | Audio | MVP | Not Started | — | — |
 | 7 | Состояние мира (inferred) | Persistence | MVP | Not Started | — | — |
-| 8 | Система уровней и XP | Progression | MVP | Not Started | — | Здоровье и статы |
-| 9 | Боевая система | Gameplay | MVP | Not Started | — | Движение игрока, Здоровье и статы |
-| 10 | Система способностей | Gameplay | MVP | Not Started | — | Здоровье и статы, База данных предметов |
-| 11 | AI врагов (inferred) | Gameplay | MVP | Not Started | — | Движение игрока, Здоровье и статы |
-| 12 | Лут-система | Economy | MVP | Not Started | — | База данных предметов |
+| 8 | Система уровней и XP | Progression | MVP | Approved | design/gdd/level-xp-system.md | Здоровье и статы |
+| 9 | Боевая система | Gameplay | MVP | Approved | design/gdd/combat-system.md | Движение игрока, Здоровье и статы |
+| 10 | Система способностей | Gameplay | MVP | Approved | design/gdd/ability-system.md | Здоровье и статы, База данных предметов |
+| 11 | AI врагов (inferred) | Gameplay | MVP | Approved | design/gdd/enemy-ai.md | Движение игрока, Здоровье и статы |
+| 12 | Лут-система | Economy | MVP | Approved | design/gdd/loot-system.md | База данных предметов |
 | 13 | Управление сценами (inferred) | Core | MVP | Not Started | — | Тайлмап / уровни |
 | 14 | Диалоговая система (inferred) | Narrative | MVP | Not Started | — | Состояние мира |
 | 15 | Система классов | Progression | MVP | Not Started | — | Система уровней и XP |
@@ -191,10 +191,10 @@ Vertical Slice, 1 для Polish.
 | Метрика | Количество |
 |---------|-----------|
 | Всего систем идентифицировано | 30 |
-| Design docs начато | 0 |
-| Design docs проверено | 0 |
-| Design docs утверждено | 0 |
-| MVP системы спроектированы | 0 / 28 |
+| Design docs начато | 8 |
+| Design docs проверено | 8 |
+| Design docs утверждено | 8 |
+| MVP системы спроектированы | 8 / 28 |
 | Vertical Slice системы спроектированы | 0 / 1 |
 
 ---

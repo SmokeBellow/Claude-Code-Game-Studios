@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://koexrtkdlmda"]
+
+[ext_resource type="Script" uid="uid://cna1tw3ldci4h" path="res://src/ai/BaseEnemy.gd" id="1_vaj5w"]
+[ext_resource type="Resource" uid="uid://bjid4x5s5w077" path="res://assets/data/enemies/melee_enemy.tres" id="2_8age4"]
+[ext_resource type="Script" uid="uid://dgu5g27dnw7s5" path="res://src/core/HealthComponent.gd" id="3_fulih"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_xcjf7"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_x3ymb"]
+
+[node name="MeleeEnemy" type="CharacterBody2D" unique_id=1376171425 node_paths=PackedStringArray("health")]
+script = ExtResource("1_vaj5w")
+data = ExtResource("2_8age4")
+health = NodePath("HealthComponent")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=1126949856]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1350132429]
+shape = SubResource("CapsuleShape2D_xcjf7")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=726465552]
+scale = Vector2(10, 10)
+texture = SubResource("PlaceholderTexture2D_x3ymb")
+
+[node name="HealthComponent" type="Node" parent="." unique_id=1291161360]
+script = ExtResource("3_fulih")
+max_hp_override = 50.0
+metadata/_custom_type_script = "uid://dgu5g27dnw7s5"
