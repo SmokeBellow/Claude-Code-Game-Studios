@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="RoomData" format=3 uid="uid://cnsf4abeg1ptt"]
+
+[ext_resource type="PackedScene" uid="uid://ce7eb3qoo7l5b" path="res://scenes/room_base.tscn" id="1_i87e2"]
+[ext_resource type="Script" uid="uid://caph3vkgojbfr" path="res://src/core/RoomData.gd" id="1_ycdlx"]
+
+[resource]
+script = ExtResource("1_ycdlx")
+scene = ExtResource("1_i87e2")
