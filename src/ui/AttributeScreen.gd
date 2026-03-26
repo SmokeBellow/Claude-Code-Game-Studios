@@ -61,10 +61,18 @@ func _build_ui() -> void:
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_root.add_child(bg)
 
-	# Центральная панель.
+	# Центральная панель — центрируем через якоря + отступы.
 	var panel := Panel.new()
-	panel.custom_minimum_size = Vector2(320, 420)
-	panel.set_anchors_preset(Control.PRESET_CENTER)
+	var pw: float = 320.0
+	var ph: float = 420.0
+	panel.set_anchor(SIDE_LEFT,   0.5)
+	panel.set_anchor(SIDE_RIGHT,  0.5)
+	panel.set_anchor(SIDE_TOP,    0.5)
+	panel.set_anchor(SIDE_BOTTOM, 0.5)
+	panel.set_offset(SIDE_LEFT,   -pw / 2.0)
+	panel.set_offset(SIDE_RIGHT,   pw / 2.0)
+	panel.set_offset(SIDE_TOP,    -ph / 2.0)
+	panel.set_offset(SIDE_BOTTOM,  ph / 2.0)
 	_root.add_child(panel)
 
 	var vbox := VBoxContainer.new()
