@@ -45,6 +45,13 @@ var _patrol_target: Vector2         # текущая патрульная точ
 var _start_position: Vector2        # стартовая позиция для патруля
 var _facing: Vector2 = Vector2.RIGHT
 
+# Статус-эффекты
+var _stun_timer: float    = 0.0   # Оглушение: нет движения и атак
+var _slow_timer: float    = 0.0   # Замедление
+var _slow_mult: float     = 1.0   # Множитель скорости при замедлении
+var _miss_timer: float    = 0.0   # Туман: шанс промахнуться атакой
+var _miss_chance: float   = 0.0   # 0.0–1.0
+
 @onready var _nav: NavigationAgent2D = $NavigationAgent2D
 
 # ---------------------------------------------------------------------------
@@ -77,6 +84,25 @@ func _physics_process(delta: float) -> void:
 	_state_timer -= delta
 	_nav_timer -= delta
 
+	# Тики статус-эффектов
+	if _stun_timer > 0.0:
+		_stun_timer -= delta
+		if _stun_timer <= 0.0:
+			_refresh_status_modulate()
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return  # Оглушён — пропускаем всю логику
+	if _slow_timer > 0.0:
+		_slow_timer -= delta
+		if _slow_timer <= 0.0:
+			_slow_mult = 1.0
+			_refresh_status_modulate()
+	if _miss_timer > 0.0:
+		_miss_timer -= delta
+		if _miss_timer <= 0.0:
+			_miss_chance = 0.0
+			_refresh_status_modulate()
+
 	match _state:
 		State.PATROL:        _tick_patrol(delta)
 		State.CHASE:         _tick_chase(delta)
@@ -101,11 +127,11 @@ func _tick_patrol(delta: float) -> void:
 		_nav_timer = 0.1
 
 	if _nav.is_navigation_finished():
-		_patrol_wait = randf_range(1.0, 3.0)
+		_patrol_wait = randf_range(0.3, 1.2)
 		_pick_patrol_point()
 		return
 
-	_move_toward_nav(delta, data.move_speed * 0.7)
+	_move_toward_nav(delta, data.move_speed * 0.7 * _slow_mult)
 
 
 func _tick_chase(delta: float) -> void:
@@ -114,6 +140,11 @@ func _tick_chase(delta: float) -> void:
 		return
 
 	var dist: float = global_position.distance_to(_target.global_position)
+
+	# Де-агро: игрок ушёл слишком далеко — возвращаемся на патруль.
+	if dist > data.aggro_range * 2.0:
+		_enter_patrol()
+		return
 
 	# В зоне атаки и cooldown истёк — начинаем windup.
 	if dist <= data.attack_range and _state_timer <= 0.0:
@@ -125,7 +156,7 @@ func _tick_chase(delta: float) -> void:
 		_nav.set_target_position(_target.global_position)
 		_nav_timer = 0.1
 
-	_move_toward_nav(delta, data.move_speed)
+	_move_toward_nav(delta, data.move_speed * _slow_mult)
 	if _target != null:
 		_facing = (_target.global_position - global_position).normalized()
 
@@ -142,11 +173,13 @@ func _tick_windup(_delta: float) -> void:
 func _tick_attack() -> void:
 	# Наносим урон — применяется мгновенно (1 кадр).
 	if _target != null:
+		# Проверяем шанс промаха (статус-эффект тумана).
+		if _miss_chance > 0.0 and randf() < _miss_chance:
+			_enter_cooldown()
+			return
 		# Проверяем парирование: если сработало — урон не проходит.
 		var combat: CombatComponent = _target.get_node_or_null("CombatComponent") as CombatComponent
-		print("ATTACK: combat=", combat != null, " is_parrying=", combat.is_parrying if combat != null else "N/A")
 		if combat != null and combat.notify_parry_hit():
-			print("PARRY SUCCESS!")
 			_enter_cooldown()
 			return
 		if _target.has_node("HealthComponent"):
@@ -163,6 +196,31 @@ func _tick_cooldown() -> void:
 			_change_state(State.CHASE)
 		else:
 			_enter_patrol()
+
+# ---------------------------------------------------------------------------
+# Публичный API статус-эффектов
+# ---------------------------------------------------------------------------
+
+## Оглушить врага на [param duration] секунд (не суммируется, берём максимум).
+func apply_stun(duration: float) -> void:
+	_stun_timer = maxf(_stun_timer, duration)
+	modulate = Color(1.0, 0.9, 0.3)   # Жёлтый — оглушение
+
+
+## Замедлить врага на [param duration] секунд. [param mult] — множитель скорости (0.0–1.0).
+func apply_slow(duration: float, mult: float = 0.4) -> void:
+	_slow_timer = maxf(_slow_timer, duration)
+	_slow_mult  = minf(_slow_mult,  mult)
+	if _stun_timer <= 0.0:
+		modulate = Color(0.5, 0.75, 1.0)  # Голубой — замедление
+
+
+## Наложить «туман» — шанс промахнуться атакой. [param chance] — 0.0–1.0.
+func apply_miss_chance(duration: float, chance: float = 0.5) -> void:
+	_miss_timer  = maxf(_miss_timer,  duration)
+	_miss_chance = maxf(_miss_chance, chance)
+	if _stun_timer <= 0.0 and _slow_timer <= 0.0:
+		modulate = Color(0.6, 0.8, 0.6)   # Зелёный — туман / снижение точности
 
 # ---------------------------------------------------------------------------
 # Переходы состояний
@@ -187,7 +245,7 @@ func _enter_attack() -> void:
 func _enter_cooldown() -> void:
 	_change_state(State.ATTACK_COOLDOWN)
 	_state_timer = data.attack_cooldown
-	modulate = Color.WHITE  # Сброс цвета после удара
+	_refresh_status_modulate()  # Сброс цвета телеграфа, восстанавливаем цвет статуса
 
 
 func _change_state(new_state: State) -> void:
@@ -221,6 +279,19 @@ func _aggro() -> void:
 # ---------------------------------------------------------------------------
 # Вспомогательные
 # ---------------------------------------------------------------------------
+
+## Обновляет цвет спрайта в соответствии с активными статус-эффектами.
+## Вызывается при истечении любого из таймеров.
+func _refresh_status_modulate() -> void:
+	if _stun_timer > 0.0:
+		modulate = Color(1.0, 0.9, 0.3)
+	elif _slow_timer > 0.0:
+		modulate = Color(0.5, 0.75, 1.0)
+	elif _miss_timer > 0.0:
+		modulate = Color(0.6, 0.8, 0.6)
+	else:
+		modulate = Color.WHITE
+
 
 func _move_toward_nav(delta: float, speed: float) -> void:
 	if _nav.is_navigation_finished():
@@ -270,4 +341,5 @@ func _on_died() -> void:
 
 	# Удаляем из дерева через 0.5с (время fade-out анимации).
 	await get_tree().create_timer(0.5).timeout
-	queue_free()
+	if is_instance_valid(self):
+		queue_free()

@@ -1,10 +1,10 @@
 class_name CombatComponent
 extends Node
 
-## Боевой компонент игрока: атака ЛКМ, парирование ПКМ, расчёт урона.
+## Боевой компонент игрока: атака ЛКМ, парирование ПКМ (только Плут), расчёт урона.
 ## [br]
-## [b]Парирование:[/b] ПКМ открывает окно 0.35с. Если враг атаковал в окне →
-## контрудар (следующая LMB в 0.5с наносит ×2). Иначе → уязвимость 0.4с.
+## [b]Парирование:[/b] доступно только классу Плут (CLASS_ROGUE). ПКМ открывает окно 0.35с.
+## Если враг атаковал в окне → контрудар (следующая LMB в 0.5с наносит ×2). Иначе → уязвимость 0.4с.
 ## [br]
 ## GDD: [code]design/gdd/combat-system.md[/code]
 
@@ -37,7 +37,7 @@ signal counter_hit     ## Контрудар нанесён.
 @export var hitbox_radius: float = 80.0
 @export var hitbox_half_arc_deg: float = 55.0
 
-## Длительность окна парирования (с). Должна быть больше attack_windup врага (0.4с).
+## Длительность окна парирования (с).
 @export var parry_window: float = 0.6
 ## Длительность уязвимости при промахе парирования (с).
 @export var vulnerable_duration: float = 0.4
@@ -47,6 +47,14 @@ signal counter_hit     ## Контрудар нанесён.
 @export var counter_window: float = 0.5
 ## Множитель урона контрудара.
 @export var counter_multiplier: float = 2.0
+
+## Одноразовый множитель следующего удара (Heavy Strike Воина). Сбрасывается после применения.
+var pending_damage_mult: float = 1.0
+
+# Параметры снаряда мага
+const _MAGE_PROJECTILE_SPEED: float  = 450.0
+const _MAGE_PROJECTILE_RANGE: float  = 500.0
+const _MAGE_PROJECTILE_COLOR: Color  = Color(0.4, 0.6, 1.0)
 
 # ---------------------------------------------------------------------------
 # Состояние
@@ -79,7 +87,7 @@ var is_parrying: bool:
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
-	pass  # Подключение к врагам больше не нужно — BaseEnemy вызывает notify_parry_hit напрямую.
+	pass
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("attack"):
@@ -131,7 +139,11 @@ func try_attack() -> void:
 		return
 	_start_attack()
 
+## Парирование доступно только Плуту (CLASS_ROGUE) или до выбора класса (CLASS_NONE).
 func try_parry() -> void:
+	var pc: int = PlayerData.player_class
+	if pc != PlayerData.CLASS_ROGUE and pc != PlayerData.CLASS_NONE:
+		return
 	if _is_parrying or _parry_cooldown > 0.0:
 		return
 	if _is_attacking or _is_vulnerable:
@@ -146,7 +158,7 @@ func connect_enemy(_enemy: BaseEnemy) -> void:
 	pass
 
 # ---------------------------------------------------------------------------
-# Атака
+# Атака — маршрутизация по классу
 # ---------------------------------------------------------------------------
 
 func _start_attack() -> void:
@@ -157,7 +169,8 @@ func _start_attack() -> void:
 	if player != null:
 		player.set_movement_locked(true)
 	attack_started.emit()
-	_apply_hitbox(false)
+	_route_attack(false)
+
 
 func _do_counter_attack() -> void:
 	if _is_attacking or _attack_cooldown > 0.0:
@@ -171,25 +184,78 @@ func _do_counter_attack() -> void:
 	if player != null:
 		player.set_movement_locked(true)
 	attack_started.emit()
-	_apply_hitbox(true)  # is_counter = true → ×2 урон
+	_route_attack(true)
 
-func _apply_hitbox(is_counter: bool) -> void:
+
+func _route_attack(is_counter: bool) -> void:
+	match PlayerData.player_class:
+		PlayerData.CLASS_WARRIOR:
+			_warrior_attack(is_counter)
+		PlayerData.CLASS_MAGE:
+			_mage_attack(is_counter)
+		PlayerData.CLASS_ROGUE:
+			_rogue_attack(is_counter)
+		_:  # CLASS_NONE (до выбора класса) — стандартная дуговая
+			_apply_hitbox(is_counter, hitbox_radius, hitbox_half_arc_deg)
+
+
+## Воин: широкая дуга, стандартный урон.
+func _warrior_attack(is_counter: bool) -> void:
+	_apply_hitbox(is_counter, hitbox_radius, hitbox_half_arc_deg)
+
+
+## Маг: снаряд магической энергии в сторону курсора.
+func _mage_attack(is_counter: bool) -> void:
 	if player == null:
-		print("_apply_hitbox: player is null!")
+		return
+	var viewport: Viewport = player.get_viewport()
+	if viewport == null:
+		return
+	var mouse_world: Vector2 = player.get_global_mouse_position()
+	var dir: Vector2 = (mouse_world - player.global_position).normalized()
+
+	var phys_bonus: float = stats.phys_damage_bonus() if stats != null else 0.0
+	var dmg: float = weapon_base + phys_bonus
+	if is_counter:
+		dmg *= counter_multiplier
+
+	var proj: PlayerProjectile = PlayerProjectile.new()
+	player.get_tree().root.add_child(proj)
+	proj.global_position = player.global_position
+	proj.init(dir, dmg, _MAGE_PROJECTILE_SPEED, _MAGE_PROJECTILE_RANGE,
+			  PlayerProjectile.Effect.NONE, 0.0, 0.0, _MAGE_PROJECTILE_COLOR)
+
+
+## Плут: двойной удар в маленьком конусе (два кадра).
+func _rogue_attack(is_counter: bool) -> void:
+	_apply_hitbox(is_counter, 55.0, 25.0)
+	# Второй удар — отложен на следующий кадр для визуального эффекта двойного удара.
+	get_tree().create_timer(0.08).timeout.connect(
+		func() -> void:
+			if is_instance_valid(self):
+				_apply_hitbox(is_counter, 55.0, 25.0)
+	)
+
+
+## Базовый хитбокс (дуга). [param radius] и [param half_arc_deg] — кастомизируются по классу.
+func _apply_hitbox(is_counter: bool, radius: float, half_arc_deg: float) -> void:
+	if player == null:
+		push_warning("CombatComponent._apply_hitbox: player is null")
 		return
 	var facing: Vector2 = player.facing_direction
 	var origin: Vector2 = player.global_position
-	var half_arc: float = deg_to_rad(hitbox_half_arc_deg)
+	var half_arc: float = deg_to_rad(half_arc_deg)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not enemy is Node2D:
 			continue
 		var to_enemy: Vector2 = enemy.global_position - origin
-		if to_enemy.length() > hitbox_radius:
+		if to_enemy.length() > radius:
 			continue
 		var angle: float = facing.angle_to(to_enemy.normalized())
 		if absf(angle) > half_arc:
 			continue
 		_deal_damage_to(enemy, is_counter)
+
 
 func _deal_damage_to(target: Node, is_counter: bool) -> void:
 	var target_health: HealthComponent = _find_health_component(target)
@@ -210,12 +276,20 @@ func _deal_damage_to(target: Node, is_counter: bool) -> void:
 			is_crit = true
 			base_damage *= stats.crit_multiplier()
 
+	# Одноразовый бонус Heavy Strike — применяется к любому удару.
+	if pending_damage_mult != 1.0:
+		base_damage *= pending_damage_mult
+		pending_damage_mult = 1.0
+		if player != null and player.has_method("hide_heavy_indicator"):
+			player.hide_heavy_indicator()
+
 	if is_counter:
 		base_damage *= counter_multiplier
 		counter_hit.emit()
 
 	target_health.take_damage(base_damage)
 	attack_hit.emit(target, base_damage, is_crit)
+
 
 func _end_attack() -> void:
 	_is_attacking = false
@@ -230,15 +304,13 @@ func _end_attack() -> void:
 func _start_parry() -> void:
 	_is_parrying = true
 	_parry_timer = parry_window
-	print("PARRY START: window=", parry_window)
 	_parry_cooldown = parry_cooldown_base
 	if player != null:
 		player.set_movement_locked(true)
 	_set_modulate(Color(0.4, 0.6, 1.0))  # Синий — окно парирования
 
+
 func _end_parry_miss() -> void:
-	# Никто не атаковал в окне — уязвимость.
-	print("PARRY MISS called! _parry_timer=", _parry_timer, " _is_parrying=", _is_parrying)
 	_is_parrying = false
 	if player != null:
 		player.set_movement_locked(false)
@@ -246,10 +318,12 @@ func _end_parry_miss() -> void:
 	parry_failed.emit()
 	_start_vulnerable()
 
+
 func _start_vulnerable() -> void:
 	_is_vulnerable = true
 	_vulnerable_timer = vulnerable_duration
 	_set_modulate(Color(1.0, 0.3, 0.3))  # Красный — уязвимость
+
 
 func _end_vulnerable() -> void:
 	_is_vulnerable = false
@@ -278,18 +352,17 @@ func notify_parry_hit() -> bool:
 # Вспомогательные
 # ---------------------------------------------------------------------------
 
-func _subscribe_to_enemies() -> void:
-	pass  # Не используется.
-
 func _set_modulate(color: Color) -> void:
 	if player != null:
 		player.modulate = color
+
 
 func _find_health_component(node: Node) -> HealthComponent:
 	for child in node.get_children():
 		if child is HealthComponent:
 			return child
 	return null
+
 
 func _find_stats_component(node: Node) -> StatsComponent:
 	for child in node.get_children():

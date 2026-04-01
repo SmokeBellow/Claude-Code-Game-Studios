@@ -23,6 +23,7 @@ var _value_labels: Dictionary = {}  # attr_name → Label
 var _root: Control  # скрываем Control, а не CanvasLayer
 
 func _ready() -> void:
+	add_to_group("attribute_screen")
 	layer = 10
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	# Находим StatsComponent игрока автоматически.
@@ -31,6 +32,11 @@ func _ready() -> void:
 		if stats != null:
 			break
 	_build_ui()
+
+
+## Возвращает true если экран прокачки сейчас открыт.
+func is_open() -> bool:
+	return _root != null and _root.visible
 
 
 ## Вызывается из Main.gd при level up.
@@ -57,12 +63,13 @@ func _build_ui() -> void:
 
 	# Затемнение фона.
 	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.6)
+	bg.color = UIStyle.COLOR_OVERLAY_MODAL
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_root.add_child(bg)
 
 	# Центральная панель — центрируем через якоря + отступы.
 	var panel := Panel.new()
+	panel.add_theme_stylebox_override("panel", UIStyle.panel_style())
 	var pw: float = 320.0
 	var ph: float = 420.0
 	panel.set_anchor(SIDE_LEFT,   0.5)
@@ -84,14 +91,18 @@ func _build_ui() -> void:
 	var title := Label.new()
 	title.text = "Повышение уровня!"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_color_override("font_color", UIStyle.COLOR_HEADING)
 	vbox.add_child(title)
 
 	# Счётчик очков.
 	_points_label = Label.new()
 	_points_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_points_label.add_theme_font_size_override("font_size", 15)
+	_points_label.add_theme_color_override("font_color", UIStyle.COLOR_SUCCESS)
 	vbox.add_child(_points_label)
 
-	vbox.add_child(HSeparator.new())
+	vbox.add_child(UIStyle.separator())
 
 	# Строки атрибутов.
 	for attr_name in ATTR_LABELS.keys():
@@ -112,16 +123,19 @@ func _build_ui() -> void:
 
 		var btn := Button.new()
 		btn.text = "+"
-		btn.custom_minimum_size = Vector2(32, 0)
+		btn.custom_minimum_size = Vector2(32, 32)
 		btn.pressed.connect(_on_plus_pressed.bind(attr_name))
+		UIStyle.apply_btn(btn)
 		row.add_child(btn)
 
-	vbox.add_child(HSeparator.new())
+	vbox.add_child(UIStyle.separator())
 
 	# Кнопка подтвердить.
 	var confirm := Button.new()
 	confirm.text = "Подтвердить"
+	confirm.custom_minimum_size.y = 36
 	confirm.pressed.connect(_on_confirm)
+	UIStyle.apply_btn(confirm)
 	vbox.add_child(confirm)
 
 

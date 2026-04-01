@@ -22,7 +22,7 @@ extends Camera2D
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
-	# Отключаем встроенное сглаживание — используем своё через lerp.
+	add_to_group("game_camera")
 	position_smoothing_enabled = false
 
 func _physics_process(delta: float) -> void:

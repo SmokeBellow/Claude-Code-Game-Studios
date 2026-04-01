@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_wooden_ring"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "wooden_ring"
+display_name = "Деревянное кольцо"
+rarity = 0
+slot = 5
+bonus_luck = 1.0

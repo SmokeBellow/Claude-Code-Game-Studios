@@ -1,8 +1,8 @@
 # Milestone: MVP — Первый играбельный прототип
 
 > **Created**: 2026-03-25
-> **Target**: ~6 недель от старта разработки
-> **Status**: Not Started
+> **Target**: ~2 недели от старта (темп: 1 спринт = 1 сессия с Claude)
+> **Status**: In Progress — Sprint 6 активен
 
 ## Цель
 

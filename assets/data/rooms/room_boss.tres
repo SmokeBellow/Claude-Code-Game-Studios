@@ -2,8 +2,11 @@
 
 [ext_resource type="Script" uid="uid://caph3vkgojbfr" path="res://src/core/RoomData.gd" id="1_p6ys6"]
 [ext_resource type="PackedScene" uid="uid://ce7eb3qoo7l5b" path="res://scenes/room_base.tscn" id="1_ymuu8"]
+[ext_resource type="PackedScene" uid="uid://boss_enemy_scene" path="res://scenes/boss_enemy.tscn" id="2_boss"]
 
 [resource]
 script = ExtResource("1_p6ys6")
 room_type = 3
 scene = ExtResource("1_ymuu8")
+max_enemies = 1
+enemy_scenes = Array[PackedScene]([ExtResource("2_boss")])

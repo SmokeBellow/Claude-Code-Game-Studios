@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_elite_seal"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "elite_seal"
+display_name = "Печать Стражника"
+rarity = 1
+slot = 7
+required_level = 1

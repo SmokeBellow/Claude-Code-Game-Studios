@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="LootTable" format=3 uid="uid://loot_boss"]
+[ext_resource type="Script" path="res://src/core/LootTable.gd" id="1_loot"]
+[resource]
+script = ExtResource("1_loot")
+drop_chance = 1.00
+rare_items = ["elven_blade"]
+epic_items = ["shadowblade"]
+weight_common = 0.00
+weight_uncommon = 0.00
+weight_rare = 0.50
+weight_epic = 0.50

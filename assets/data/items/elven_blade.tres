@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_elven_blade"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "elven_blade"
+display_name = "Эльфийский клинок"
+rarity = 2
+slot = 0
+required_level = 5
+bonus_strength = 8.0
+bonus_dexterity = 3.0

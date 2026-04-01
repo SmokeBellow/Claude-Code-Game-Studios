@@ -5,15 +5,11 @@
 [ext_resource type="PackedScene" uid="uid://koexrtkdlmda" path="res://scenes/melee_enemy.tscn" id="3_sugp2"]
 [ext_resource type="Script" uid="uid://hekr2r4rwxq7" path="res://src/gameplay/LevelXPSystem.gd" id="5_tefeu"]
 [ext_resource type="PackedScene" uid="uid://cf2q4hi6nsc6l" path="res://scenes/hud.tscn" id="6_tefeu"]
-[ext_resource type="Script" uid="uid://p0qcu04o5tcn" path="res://src/gameplay/RoomManager.gd" id="7_85g3d"]
-[ext_resource type="Resource" uid="uid://cnsf4abeg1ptt" path="res://assets/data/rooms/room_normal.tres" id="8_choun"]
+[ext_resource type="Script" uid="uid://floor_manager_script" path="res://src/gameplay/FloorManager.gd" id="7_floor"]
 [ext_resource type="Script" uid="uid://dal6regx8s8d2" path="res://src/ui/AttributeScreen.gd" id="9_85g3d"]
-[ext_resource type="Resource" uid="uid://b8eymlfd5fagb" path="res://assets/data/rooms/room_boss.tres" id="9_ya4ey"]
-
-[sub_resource type="NavigationPolygon" id="NavigationPolygon_jyhfs"]
-vertices = PackedVector2Array(1094.5, 104.453125, 1186.1484, 624.39844, 180.13281, 658.6797, 125.96875, 38.773438)
-polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(115, 28, 1103, 95, 1198, 634, 171, 669)])
+[ext_resource type="PackedScene" uid="uid://ranged_enemy_scene" path="res://scenes/ranged_enemy.tscn" id="10_ranged"]
+[ext_resource type="PackedScene" uid="uid://elite_enemy_scene" path="res://scenes/elite_enemy.tscn" id="11_elite"]
+[ext_resource type="PackedScene" uid="uid://boss_enemy_scene" path="res://scenes/boss_enemy.tscn" id="12_boss"]
 
 [node name="Main" type="Node2D" unique_id=2024175462 node_paths=PackedStringArray("level_xp", "hud", "attribute_screen")]
 script = ExtResource("1_tbgi4")
@@ -24,44 +20,18 @@ attribute_screen = NodePath("AttributeScreen")
 [node name="Player" parent="." unique_id=263356863 instance=ExtResource("1_o5qli")]
 z_index = 1
 
-[node name="NavigationRegion2D" type="NavigationRegion2D" parent="." unique_id=133403288]
-navigation_polygon = SubResource("NavigationPolygon_jyhfs")
-
-[node name="MeleeEnemy" parent="." unique_id=1376171425 instance=ExtResource("3_sugp2")]
-position = Vector2(706, 537)
-
 [node name="LevelXPSystem" type="Node" parent="." unique_id=21209823]
 script = ExtResource("5_tefeu")
 
-[node name="MeleeEnemy2" parent="." unique_id=77173905 instance=ExtResource("3_sugp2")]
-position = Vector2(335, 518)
-
-[node name="MeleeEnemy3" parent="." unique_id=603339392 instance=ExtResource("3_sugp2")]
-position = Vector2(218, 126)
-
-[node name="MeleeEnemy4" parent="." unique_id=1781770870 instance=ExtResource("3_sugp2")]
-position = Vector2(896, 163)
-
-[node name="MeleeEnemy5" parent="." unique_id=825798765 instance=ExtResource("3_sugp2")]
-position = Vector2(896, 163)
-
-[node name="MeleeEnemy6" parent="." unique_id=545365862 instance=ExtResource("3_sugp2")]
-position = Vector2(896, 163)
-
-[node name="MeleeEnemy7" parent="." unique_id=1716146659 instance=ExtResource("3_sugp2")]
-position = Vector2(896, 163)
-
-[node name="MeleeEnemy8" parent="." unique_id=1417624683 instance=ExtResource("3_sugp2")]
-position = Vector2(896, 163)
-
 [node name="HUD" parent="." unique_id=605276330 instance=ExtResource("6_tefeu")]
 
-[node name="RoomManager" type="Node" parent="." unique_id=1985693718 node_paths=PackedStringArray("player")]
-script = ExtResource("7_85g3d")
-normal_room_data = ExtResource("8_choun")
-boss_room_data = ExtResource("9_ya4ey")
-enemy_scene = ExtResource("3_sugp2")
+[node name="FloorManager" type="Node" parent="." unique_id=1985693718 node_paths=PackedStringArray("player")]
+script = ExtResource("7_floor")
 player = NodePath("../Player")
+melee_scene = ExtResource("3_sugp2")
+ranged_scene = ExtResource("10_ranged")
+elite_scene = ExtResource("11_elite")
+boss_scene = ExtResource("12_boss")
 
 [node name="AttributeScreen" type="CanvasLayer" parent="." unique_id=90128062]
 script = ExtResource("9_85g3d")

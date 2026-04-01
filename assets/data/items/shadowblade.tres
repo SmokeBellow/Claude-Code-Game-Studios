@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_shadowblade"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "shadowblade"
+display_name = "Клинок Тени"
+rarity = 3
+slot = 0
+required_level = 7
+bonus_strength = 12.0
+bonus_dexterity = 5.0
+bonus_luck = 3.0

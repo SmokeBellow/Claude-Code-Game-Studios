@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://boss_enemy_scene"]
+
+[ext_resource type="Script" uid="uid://boss_enemy_script" path="res://src/ai/BossEnemy.gd" id="1_boss"]
+[ext_resource type="Resource" uid="uid://boss_enemy_data" path="res://assets/data/enemies/boss_enemy.tres" id="2_boss"]
+[ext_resource type="Script" uid="uid://dgu5g27dnw7s5" path="res://src/core/HealthComponent.gd" id="3_fulih"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_boss"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_boss"]
+
+[node name="BossEnemy" type="CharacterBody2D" node_paths=PackedStringArray("health")]
+script = ExtResource("1_boss")
+data = ExtResource("2_boss")
+health = NodePath("HealthComponent")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_boss")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(14, 14)
+texture = SubResource("PlaceholderTexture2D_boss")
+modulate = Color(1, 0.4, 0.4, 1)
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_fulih")
+max_hp_override = 150.0
+metadata/_custom_type_script = "uid://dgu5g27dnw7s5"

@@ -42,6 +42,20 @@ signal stats_changed
 ## Накопленные нераспределённые очки. Начисляются через [method add_attribute_points].
 var attribute_points: int = 0
 
+func _ready() -> void:
+	# Восстанавливаем атрибуты из PlayerData при повторном запуске сцены.
+	if PlayerData.saved_level > 1 or PlayerData.saved_str > 5.0:
+		strength     = PlayerData.saved_str
+		dexterity    = PlayerData.saved_dex
+		endurance    = PlayerData.saved_end
+		intelligence = PlayerData.saved_int
+		arcana       = PlayerData.saved_arc
+		luck         = PlayerData.saved_lck
+		attribute_points = PlayerData.saved_attr_points
+		if PlayerData.player_class != PlayerData.CLASS_NONE:
+			PlayerData.apply_class_stats(self)
+		stats_changed.emit()
+
 # ---------------------------------------------------------------------------
 # Бонусы от экипировки (устанавливаются системой инвентаря)
 # ---------------------------------------------------------------------------
@@ -152,6 +166,7 @@ func crit_multiplier() -> float:
 ## Начисляет очки атрибутов (вызывается системой уровней и XP).
 func add_attribute_points(amount: int) -> void:
 	attribute_points += amount
+	PlayerData.saved_attr_points = attribute_points
 
 ## Тратит [param amount] очков на атрибут [param attr_name].
 ## [br]Возвращает [code]false[/code] если нет очков или атрибут на хард капе.
@@ -187,6 +202,7 @@ func spend_points(attr_name: String, amount: int = 1) -> bool:
 			push_error("StatsComponent: неизвестный атрибут '%s'" % attr_name)
 			return false
 	attribute_points -= amount
+	_save_to_player_data()
 	stats_changed.emit()
 	return true
 
@@ -215,3 +231,13 @@ func remove_equipment_bonus(str_b: float, dex_b: float, end_b: float,
 	_equip_arc -= arc_b
 	_equip_lck -= lck_b
 	stats_changed.emit()
+
+
+func _save_to_player_data() -> void:
+	PlayerData.saved_str        = strength
+	PlayerData.saved_dex        = dexterity
+	PlayerData.saved_end        = endurance
+	PlayerData.saved_int        = intelligence
+	PlayerData.saved_arc        = arcana
+	PlayerData.saved_lck        = luck
+	PlayerData.saved_attr_points = attribute_points

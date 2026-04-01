@@ -19,3 +19,6 @@ enum RoomType { START, NORMAL, ELITE, BOSS }
 
 ## Сцены врагов для спавна (берутся случайно из списка).
 @export var enemy_scenes: Array[PackedScene] = []
+
+## Форма комнаты (задаётся RoomManager на основе exits при генерации).
+var room_shape: int = 0  # Room.SHAPE_RECT

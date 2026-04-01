@@ -45,9 +45,10 @@ var current_xp: int = 0
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
-	# Подписываемся на enemy_died всех врагов в сцене через группу.
-	# Новые враги подключаются при спавне через connect_enemy().
-	pass
+	add_to_group("level_xp")
+	# Восстанавливаем прогрессию из PlayerData (выживает при reload сцены).
+	current_level = PlayerData.saved_level
+	current_xp    = PlayerData.saved_xp
 
 # ---------------------------------------------------------------------------
 # Публичный API
@@ -63,6 +64,8 @@ func add_xp(amount: int, source: String = "enemy") -> void:
 	current_xp += amount
 	xp_gained.emit(amount, source)
 	_check_level_up()
+	PlayerData.saved_xp    = current_xp
+	PlayerData.saved_level = current_level
 	xp_updated.emit(current_xp, xp_to_next_level(current_level))
 
 
@@ -119,7 +122,7 @@ func _on_enemy_died(xp_reward: int, _enemy_data: EnemyData) -> void:
 
 
 func _on_player_died() -> void:
-	# Штраф смерти: сбросить прогресс XP до нижней границы текущего уровня.
+	# Штраф смерти: только XP → 0. Уровень и атрибуты НЕ сбрасываются.
 	current_xp = 0
+	PlayerData.saved_xp = 0
 	xp_updated.emit(current_xp, xp_to_next_level(current_level))
-	print("Death penalty: XP сброшен до 0 (floor уровня ", current_level, ")")

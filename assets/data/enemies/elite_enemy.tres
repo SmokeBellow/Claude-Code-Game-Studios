@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://elite_enemy_data"]
+
+[ext_resource type="Script" uid="uid://blheymtufthxf" path="res://src/core/EnemyData.gd" id="1_pk2n4"]
+
+[resource]
+script = ExtResource("1_pk2n4")
+display_name = "Элитный страж"
+max_hp = 220.0
+move_speed = 100.0
+attack_damage = 30.0
+attack_range = 55.0
+attack_cooldown = 1.0
+attack_windup = 0.5
+aggro_range = 280.0
+aggro_angle = 360.0
+patrol_radius = 80.0
+xp_reward = 65
+loot_table_id = "elite_common"

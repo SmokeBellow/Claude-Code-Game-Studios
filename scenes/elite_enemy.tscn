@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://elite_enemy_scene"]
+
+[ext_resource type="Script" path="res://src/ai/EliteEnemy.gd" id="1_vaj5w"]
+[ext_resource type="Resource" uid="uid://elite_enemy_data" path="res://assets/data/enemies/elite_enemy.tres" id="2_elite"]
+[ext_resource type="Script" uid="uid://dgu5g27dnw7s5" path="res://src/core/HealthComponent.gd" id="3_fulih"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_elite"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_elite"]
+
+[node name="EliteEnemy" type="CharacterBody2D" unique_id=2000000001 node_paths=PackedStringArray("health")]
+script = ExtResource("1_vaj5w")
+data = ExtResource("2_elite")
+health = NodePath("HealthComponent")
+modulate = Color(0.65, 0.2, 1.0, 1)
+scale = Vector2(1.2, 1.2)
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=2000000002]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2000000003]
+shape = SubResource("CapsuleShape2D_elite")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2000000004]
+scale = Vector2(10, 10)
+texture = SubResource("PlaceholderTexture2D_elite")
+
+[node name="HealthComponent" type="Node" parent="." unique_id=2000000005]
+script = ExtResource("3_fulih")
+max_hp_override = 100.0
+metadata/_custom_type_script = "uid://dgu5g27dnw7s5"

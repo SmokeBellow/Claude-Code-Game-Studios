@@ -18,8 +18,9 @@ const OPPOSITE: Dictionary = {
 
 ## Генерирует данжн с [param room_count] комнатами.
 ## [param normal_data] — шаблон обычной комнаты, [param boss_data] — боссовой.
+## [param elite_data] — шаблон элитной комнаты (необязателен; при null — без элитных).
 static func generate(room_count: int, normal_data: RoomData,
-		boss_data: RoomData) -> Dictionary:
+		boss_data: RoomData, elite_data: RoomData = null) -> Dictionary:
 	var layout: Dictionary = {}
 	var frontier: Array[Vector2i] = []
 
@@ -58,6 +59,19 @@ static func generate(room_count: int, normal_data: RoomData,
 			farthest = pos
 	layout[farthest] = boss_data.duplicate()
 	layout[farthest].room_type = RoomData.RoomType.BOSS
+
+	# Элитные комнаты — 1-2 обычных комнаты на дистанции ≥2 от старта.
+	if elite_data != null:
+		var candidates: Array[Vector2i] = []
+		for pos in layout.keys():
+			var dist: int = abs(pos.x) + abs(pos.y)
+			if dist >= 2 and layout[pos].room_type == RoomData.RoomType.NORMAL:
+				candidates.append(pos)
+		candidates.shuffle()
+		var elite_count: int = mini(2, candidates.size())
+		for i in range(elite_count):
+			layout[candidates[i]] = elite_data.duplicate()
+			layout[candidates[i]].room_type = RoomData.RoomType.ELITE
 
 	# Проставляем exits между соседними комнатами.
 	for pos in layout.keys():

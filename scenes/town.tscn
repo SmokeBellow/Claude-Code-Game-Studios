@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://town_scene"]
+
+[ext_resource type="Script" path="res://src/town/Town.gd" id="1_town"]
+[ext_resource type="Script" path="res://src/ui/DialogueScreen.gd" id="2_dlg"]
+[ext_resource type="Script" path="res://src/ui/ShopScreen.gd" id="3_shop"]
+
+[node name="Town" type="Node2D"]
+script = ExtResource("1_town")
+
+[node name="DialogueScreen" type="CanvasLayer" parent="."]
+script = ExtResource("2_dlg")
+
+[node name="ShopScreen" type="CanvasLayer" parent="."]
+script = ExtResource("3_shop")

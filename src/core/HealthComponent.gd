@@ -55,6 +55,9 @@ var is_invincible: bool = false
 var _regen_cooldown: float = 0.0
 var _between_rooms_mode: bool = false
 
+## Активные временные HP: массив [amount, timer].
+var _temp_hp_entries: Array = []
+
 # ---------------------------------------------------------------------------
 # Lifecycle
 # ---------------------------------------------------------------------------
@@ -76,6 +79,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if is_dead:
 		return
+	_tick_temp_hp(delta)
 	if _regen_cooldown > 0.0:
 		_regen_cooldown -= delta
 		return
@@ -110,6 +114,16 @@ func heal(amount: float) -> void:
 	health_changed.emit(current_hp, _get_max_hp())
 	healed.emit(amount)
 
+## Добавляет временные HP на [param duration] секунд.
+## По истечении бонус снимается (HP зажимается до актуального максимума).
+func add_temp_hp(amount: float, duration: float) -> void:
+	if is_dead:
+		return
+	_temp_hp_entries.append([amount, duration])
+	current_hp = minf(current_hp + amount, _get_max_hp() + amount)
+	health_changed.emit(current_hp, _get_max_hp())
+
+
 ## Тратит ману. Возвращает [code]false[/code] и не тратит ману если её не хватает.
 ## [br]Вызывается Системой способностей (#10).
 func spend_mana(amount: float) -> bool:
@@ -131,6 +145,21 @@ func set_between_rooms_mode(active: bool) -> void:
 # ---------------------------------------------------------------------------
 # Приватные методы
 # ---------------------------------------------------------------------------
+
+func _tick_temp_hp(delta: float) -> void:
+	if _temp_hp_entries.is_empty():
+		return
+	var expired: Array = []
+	for entry in _temp_hp_entries:
+		entry[1] -= delta
+		if entry[1] <= 0.0:
+			expired.append(entry)
+	for entry in expired:
+		_temp_hp_entries.erase(entry)
+		# Снимаем бонусные HP, но не убиваем игрока (минимум 1).
+		current_hp = maxf(1.0, current_hp - entry[0])
+		health_changed.emit(current_hp, _get_max_hp())
+
 
 func _apply_regen(delta: float) -> void:
 	if stats == null:
@@ -159,6 +188,14 @@ func _get_max_hp() -> float:
 	if stats != null:
 		return stats.max_hp()
 	return max_hp_override if max_hp_override > 0.0 else current_hp
+
+
+## Возрождает сущность с полным HP. Вызывается Player.on_died() после задержки.
+func respawn() -> void:
+	is_dead = false
+	_regen_cooldown = 0.0
+	current_hp = _get_max_hp()
+	health_changed.emit(current_hp, _get_max_hp())
 
 
 func _die() -> void:
