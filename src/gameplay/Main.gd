@@ -97,7 +97,7 @@ func _ready() -> void:
 	)
 
 
-## Вызывается RoomManager при спавне каждого нового врага.
+## Вызывается FloorScene при спавне каждого нового врага.
 func wire_enemy(enemy: Node) -> void:
 	var combat: CombatComponent = null
 	for player in get_tree().get_nodes_in_group("player"):
