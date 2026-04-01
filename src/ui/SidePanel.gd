@@ -32,6 +32,19 @@ const ATTR_NAMES: Dictionary = {
 	"luck":          "Удача",
 }
 
+# Маппинг ячеек сетки папердолла → slot ID (-1 = пустая ячейка)
+# Сетка 3×4:
+#   _      ШЛЕМ(1)   _
+#  ОРЖ(0) БРОНЯ(2) ПЕРЧ(3)
+#  КЛЬ1(5) АМУ(7) КЛЬ2(6)
+#   _      САПОГ(4)  _
+const _PAPERDOLL: Array[int] = [
+	-1, 1, -1,
+	 0, 2,  3,
+	 5, 7,  6,
+	-1, 4, -1,
+]
+
 # ---------------------------------------------------------------------------
 # Ссылки на узлы
 # ---------------------------------------------------------------------------
@@ -49,8 +62,11 @@ var _views: Array[Control] = []
 var _attr_val_labels: Dictionary = {}   # key → Label
 var _attr_pts_label: Label
 
-# Экипировка — слоты
-var _equip_rows: Array[HBoxContainer] = []
+# Экипировка — папердолл
+var _equip_btns: Array = []             # size 8, indexed by slot
+var _equip_selected_slot: int = -1
+var _equip_action_row: HBoxContainer
+var _equip_item_lbl: Label
 
 # Инвентарь — квадратные слоты
 var _bag_grid: GridContainer
@@ -58,6 +74,8 @@ var _bag_slots: Array[Button] = []
 var _selected_bag_idx: int = -1
 var _bag_action_panel: HBoxContainer
 var _bag_info_label: Label
+var _bag_equip_btn: Button
+var _bag_sell_btn: Button
 
 # Задания
 var _quest_text: Label
@@ -73,6 +91,7 @@ func _ready() -> void:
 	layer = 8
 	add_to_group("side_panel")
 	process_mode = PROCESS_MODE_ALWAYS
+	_equip_btns.resize(8)
 	_build_toggle_btn()
 	_build_panel()
 	_panel.visible = false
@@ -251,12 +270,12 @@ func _build_attrs_view(parent: Control) -> Control:
 
 
 # ---------------------------------------------------------------------------
-# Вкладка: Экипировка
+# Вкладка: Экипировка — Папердолл
 # ---------------------------------------------------------------------------
 
 func _build_equip_view(parent: Control) -> Control:
 	var view := VBoxContainer.new()
-	view.add_theme_constant_override("separation", 4)
+	view.add_theme_constant_override("separation", 8)
 	view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(view)
 
@@ -267,33 +286,99 @@ func _build_equip_view(parent: Control) -> Control:
 	view.add_child(lbl)
 	view.add_child(UIStyle.separator())
 
-	for i in range(8):
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 6)
-		view.add_child(row)
+	# Папердолл — сетка 3×4, центрирована
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 8)
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	view.add_child(grid)
 
-		var slot_name_lbl := Label.new()
-		slot_name_lbl.text = EQUIP_SLOTS[i]
-		slot_name_lbl.custom_minimum_size.x = 90
-		slot_name_lbl.add_theme_font_size_override("font_size", 13)
-		slot_name_lbl.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
-		row.add_child(slot_name_lbl)
+	for cell_slot: int in _PAPERDOLL:
+		if cell_slot < 0:
+			var spacer := Control.new()
+			spacer.custom_minimum_size = Vector2(72, 82)
+			grid.add_child(spacer)
+		else:
+			grid.add_child(_make_equip_cell(cell_slot))
 
-		var item_lbl := Label.new()
-		item_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		item_lbl.add_theme_font_size_override("font_size", 13)
-		row.add_child(item_lbl)
+	view.add_child(UIStyle.separator())
 
-		var unequip_btn := Button.new()
-		unequip_btn.text = "Снять"
-		unequip_btn.custom_minimum_size = Vector2(70, 32)
-		unequip_btn.pressed.connect(_on_unequip.bind(i))
-		UIStyle.apply_btn(unequip_btn)
-		row.add_child(unequip_btn)
+	# Панель действия (скрыта до клика на слот)
+	_equip_action_row = HBoxContainer.new()
+	_equip_action_row.add_theme_constant_override("separation", 8)
+	_equip_action_row.hide()
+	view.add_child(_equip_action_row)
 
-		_equip_rows.append(row)
+	_equip_item_lbl = Label.new()
+	_equip_item_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_equip_item_lbl.add_theme_font_size_override("font_size", 12)
+	_equip_item_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_equip_action_row.add_child(_equip_item_lbl)
+
+	var unequip_btn := Button.new()
+	unequip_btn.text = "Снять"
+	unequip_btn.custom_minimum_size = Vector2(72, 32)
+	unequip_btn.pressed.connect(_on_equip_unequip_selected)
+	UIStyle.apply_btn(unequip_btn)
+	_equip_action_row.add_child(unequip_btn)
 
 	return view
+
+
+func _make_equip_cell(slot: int) -> Control:
+	var cell := VBoxContainer.new()
+	cell.add_theme_constant_override("separation", 3)
+	cell.custom_minimum_size = Vector2(72, 82)
+
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(64, 64)
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.clip_contents = true
+	btn.pressed.connect(_on_equip_slot_clicked.bind(slot))
+	_apply_equip_slot_style(btn, null)
+	cell.add_child(btn)
+	_equip_btns[slot] = btn
+
+	var name_lbl := Label.new()
+	name_lbl.text = EQUIP_SLOTS[slot]
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.add_theme_font_size_override("font_size", 10)
+	name_lbl.add_theme_color_override("font_color", Color(0.45, 0.45, 0.5))
+	cell.add_child(name_lbl)
+
+	return cell
+
+
+func _apply_equip_slot_style(btn: Button, item: ItemResource) -> void:
+	var base: Color = item.rarity_color() if item != null else Color(0.35, 0.35, 0.4)
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(base.r * 0.2, base.g * 0.2, base.b * 0.2, 1.0) if item != null \
+		else Color(0.11, 0.11, 0.14, 1.0)
+	bg.border_color = base
+	var bw: int = 2 if item != null else 1
+	bg.border_width_left   = bw
+	bg.border_width_right  = bw
+	bg.border_width_top    = bw
+	bg.border_width_bottom = bw
+	bg.corner_radius_top_left     = 4
+	bg.corner_radius_top_right    = 4
+	bg.corner_radius_bottom_left  = 4
+	bg.corner_radius_bottom_right = 4
+	btn.add_theme_stylebox_override("normal", bg)
+
+	var hover := bg.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(base.r * 0.38, base.g * 0.38, base.b * 0.38, 1.0)
+	btn.add_theme_stylebox_override("hover", hover)
+
+	if item != null:
+		btn.text = item.display_name.left(8)
+		btn.add_theme_color_override("font_color", base)
+		btn.add_theme_font_size_override("font_size", 9)
+	else:
+		btn.text = "—"
+		btn.add_theme_color_override("font_color", Color(0.28, 0.28, 0.32))
+		btn.add_theme_font_size_override("font_size", 16)
 
 
 # ---------------------------------------------------------------------------
@@ -326,12 +411,19 @@ func _build_bag_view(parent: Control) -> Control:
 	_bag_action_panel.add_theme_constant_override("separation", 8)
 	view.add_child(_bag_action_panel)
 
-	var equip_btn := Button.new()
-	equip_btn.text = "Надеть"
-	equip_btn.custom_minimum_size.y = 36
-	equip_btn.pressed.connect(_on_bag_equip)
-	UIStyle.apply_btn(equip_btn)
-	_bag_action_panel.add_child(equip_btn)
+	_bag_equip_btn = Button.new()
+	_bag_equip_btn.text = "Надеть"
+	_bag_equip_btn.custom_minimum_size.y = 36
+	_bag_equip_btn.pressed.connect(_on_bag_equip)
+	UIStyle.apply_btn(_bag_equip_btn)
+	_bag_action_panel.add_child(_bag_equip_btn)
+
+	_bag_sell_btn = Button.new()
+	_bag_sell_btn.text = "Продать"
+	_bag_sell_btn.custom_minimum_size.y = 36
+	_bag_sell_btn.pressed.connect(_on_bag_sell)
+	UIStyle.apply_btn(_bag_sell_btn)
+	_bag_action_panel.add_child(_bag_sell_btn)
 
 	var drop_btn := Button.new()
 	drop_btn.text = "Выбросить"
@@ -540,25 +632,16 @@ func _refresh_attrs() -> void:
 
 
 func _refresh_equip() -> void:
+	_equip_selected_slot = -1
+	if _equip_action_row != null:
+		_equip_action_row.hide()
 	var inv := _get_inventory()
 	for i in range(8):
-		var row: HBoxContainer = _equip_rows[i]
-		var item_lbl: Label = row.get_child(1) as Label
-		var unequip_btn: Button = row.get_child(2) as Button
-		if inv == null:
-			item_lbl.text = "пусто"
-			item_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-			unequip_btn.disabled = true
+		var btn = _equip_btns[i]
+		if btn == null:
 			continue
-		var item: ItemResource = inv.get_equipped_item(i)
-		if item == null:
-			item_lbl.text = "пусто"
-			item_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-			unequip_btn.disabled = true
-		else:
-			item_lbl.text = item.display_name
-			item_lbl.add_theme_color_override("font_color", item.rarity_color())
-			unequip_btn.disabled = false
+		var item: ItemResource = inv.get_equipped_item(i) if inv != null else null
+		_apply_equip_slot_style(btn, item)
 
 
 func _refresh_bag() -> void:
@@ -588,8 +671,8 @@ func _make_bag_slot(item: ItemResource, idx: int) -> Button:
 	btn.clip_contents = true
 
 	# Фон по редкости — тёмная версия цвета редкости
-	var bg := StyleBoxFlat.new()
 	var base: Color = item.rarity_color()
+	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(base.r * 0.25, base.g * 0.25, base.b * 0.25, 1.0)
 	bg.border_color = base
 	bg.border_width_left   = 1
@@ -611,8 +694,10 @@ func _make_bag_slot(item: ItemResource, idx: int) -> Button:
 	pressed_style.border_width_bottom = 2
 	btn.add_theme_stylebox_override("pressed", pressed_style)
 
-	# Сокращённое название предмета
+	# Иконка мусора
 	var abbr := item.display_name.left(6)
+	if item.is_junk:
+		abbr = "🗑" + item.display_name.left(4)
 	btn.text = abbr
 	btn.add_theme_font_size_override("font_size", 10)
 	btn.add_theme_color_override("font_color", base)
@@ -723,7 +808,40 @@ func _refresh_quests() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Обработчики событий
+# Обработчики — Экипировка
+# ---------------------------------------------------------------------------
+
+func _on_equip_slot_clicked(slot: int) -> void:
+	var inv := _get_inventory()
+	if inv == null:
+		return
+	var item: ItemResource = inv.get_equipped_item(slot)
+	if item == null:
+		_equip_selected_slot = -1
+		_equip_action_row.hide()
+		return
+	_equip_selected_slot = slot
+	_equip_item_lbl.text = "[%s]  %s\n%s" % [
+		_rarity_name(item.rarity), item.display_name, item.bonus_summary()
+	]
+	_equip_action_row.show()
+
+
+func _on_equip_unequip_selected() -> void:
+	if _equip_selected_slot < 0:
+		return
+	var inv := _get_inventory()
+	if inv == null:
+		return
+	inv.unequip_slot(_equip_selected_slot)
+	_equip_selected_slot = -1
+	_equip_action_row.hide()
+	_refresh_equip()
+	_refresh_bag()
+
+
+# ---------------------------------------------------------------------------
+# Обработчики — Инвентарь
 # ---------------------------------------------------------------------------
 
 func _on_bag_slot_clicked(idx: int) -> void:
@@ -748,11 +866,20 @@ func _on_bag_slot_clicked(idx: int) -> void:
 	if idx >= bag.size():
 		return
 	var item: ItemResource = bag[idx]
-	_bag_info_label.text = "[%s]  %s\n%s" % [
-		_rarity_name(item.rarity),
-		item.display_name,
-		item.bonus_summary()
-	]
+
+	var sell_price: String = "  Продать: %d зол." % item.sell_value()
+	if item.is_junk:
+		_bag_info_label.text = "[Мусор]  %s\n%s" % [item.display_name, sell_price]
+		_bag_equip_btn.hide()
+		_bag_sell_btn.show()
+	else:
+		_bag_info_label.text = "[%s]  %s\n%s\n%s" % [
+			_rarity_name(item.rarity), item.display_name,
+			item.bonus_summary(), sell_price
+		]
+		_bag_equip_btn.show()
+		_bag_sell_btn.show()
+
 	_bag_action_panel.show()
 
 
@@ -770,6 +897,20 @@ func _on_bag_equip() -> void:
 	_refresh_equip()
 
 
+func _on_bag_sell() -> void:
+	if _selected_bag_idx < 0:
+		return
+	var inv := _get_inventory()
+	if inv == null:
+		return
+	var bag := inv.get_bag()
+	if _selected_bag_idx >= bag.size():
+		return
+	var gold := inv.sell_item_from_bag(bag[_selected_bag_idx])
+	PlayerData.gold += gold
+	_refresh_bag()
+
+
 func _on_bag_drop() -> void:
 	if _selected_bag_idx < 0:
 		return
@@ -779,17 +920,7 @@ func _on_bag_drop() -> void:
 	var bag := inv.get_bag()
 	if _selected_bag_idx >= bag.size():
 		return
-	# Удаляем предмет из сумки без продажи
 	inv.drop_item(bag[_selected_bag_idx])
-	_refresh_bag()
-
-
-func _on_unequip(slot: int) -> void:
-	var inv := _get_inventory()
-	if inv == null:
-		return
-	inv.unequip_slot(slot)
-	_refresh_equip()
 	_refresh_bag()
 
 
