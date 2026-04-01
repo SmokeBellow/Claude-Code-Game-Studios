@@ -282,6 +282,9 @@ func _deal_damage_to(target: Node, is_counter: bool) -> void:
 		pending_damage_mult = 1.0
 		if player != null and player.has_method("hide_heavy_indicator"):
 			player.hide_heavy_indicator()
+		var cas := player.get_node_or_null("ClassAbilitySystem") as ClassAbilitySystem if player != null else null
+		if cas != null:
+			cas._heavy_strike_ready = 0.0
 
 	if is_counter:
 		base_damage *= counter_multiplier
