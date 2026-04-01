@@ -20,6 +20,10 @@ enum Slot { WEAPON, HELMET, ARMOR, GLOVES, BOOTS, RING1, RING2, AMULET }
 @export var bonus_arcana: float = 0.0
 @export var bonus_luck: float = 0.0
 
+## Если true — предмет нельзя экипировать, только продать. Цену задаёт junk_value.
+@export var is_junk: bool = false
+@export var junk_value: int = 5
+
 
 ## Цвет редкости для UI.
 func rarity_color() -> Color:
@@ -30,8 +34,10 @@ func rarity_color() -> Color:
 		_:               return Color(0.85, 0.85, 0.85)
 
 
-## Цена продажи предмета торговцу (зависит от редкости).
+## Цена продажи предмета торговцу (зависит от редкости; для мусора — junk_value).
 func sell_value() -> int:
+	if is_junk:
+		return junk_value
 	match rarity:
 		Rarity.UNCOMMON: return 25
 		Rarity.RARE:     return 60

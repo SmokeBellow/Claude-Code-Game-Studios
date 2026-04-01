@@ -40,6 +40,8 @@ func pickup_item(item: ItemResource) -> void:
 func equip_item(item: ItemResource) -> void:
 	if item == null or not _bag.has(item):
 		return
+	if item.is_junk:
+		return
 	var slot: int = item.slot
 	if _equipped.has(slot):
 		unequip_slot(slot)

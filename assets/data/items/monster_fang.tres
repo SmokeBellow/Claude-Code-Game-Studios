@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_monster_fang"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "monster_fang"
+display_name = "Клык монстра"
+rarity = 0
+slot = 0
+is_junk = true
+junk_value = 10

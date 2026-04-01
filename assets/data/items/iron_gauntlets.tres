@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_iron_gauntlets"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "iron_gauntlets"
+display_name = "Железные рукавицы"
+rarity = 1
+slot = 3
+required_level = 3
+bonus_strength = 3.0
+bonus_endurance = 2.0

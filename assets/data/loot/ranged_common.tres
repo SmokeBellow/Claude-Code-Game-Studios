@@ -2,9 +2,9 @@
 [ext_resource type="Script" path="res://src/core/LootTable.gd" id="1_loot"]
 [resource]
 script = ExtResource("1_loot")
-drop_chance = 0.35
-common_items = ["iron_sword", "leather_cap", "leather_boots"]
-uncommon_items = ["steel_sword", "chainmail"]
+drop_chance = 0.15
+common_items = ["leather_boots", "wooden_ring", "leather_cap", "leather_gloves", "silver_ring", "rusty_knife", "old_coin", "bone_shard"]
+uncommon_items = ["steel_sword", "chainmail", "iron_helmet", "enchanted_ring"]
 rare_items = ["elven_blade"]
 weight_common = 0.65
 weight_uncommon = 0.30
