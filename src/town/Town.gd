@@ -9,6 +9,9 @@ const COLS: int = 120
 const ROWS: int = 80
 const TILE: int = 20
 
+const _SidePanel = preload("res://src/ui/SidePanel.gd")
+const _Inventory  = preload("res://src/gameplay/Inventory.gd")
+
 # Атлас тайлов (те же что в Room.gd)
 const ATLAS_FLOOR: Vector2i = Vector2i(0, 0)
 const ATLAS_WALL: Vector2i  = Vector2i(1, 0)
@@ -34,6 +37,8 @@ func _ready() -> void:
 	_spawn_player()
 	_setup_camera()
 	_show_resurrection_notice()
+	add_child(_Inventory.new())
+	add_child(_SidePanel.new())
 
 
 # ---------------------------------------------------------------------------

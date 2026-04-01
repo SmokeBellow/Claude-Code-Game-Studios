@@ -61,8 +61,8 @@ func _ready() -> void:
 	var _light := PointLight2D.new()
 	_light.name = "TorchLight"
 	_light.texture = WallTorch.make_radial_texture(128)
-	_light.texture_scale = 5.5
-	_light.energy = 1.8
+	_light.texture_scale = 3.5
+	_light.energy = 1.0
 	_light.color = Color(1.0, 0.88, 0.65)
 	_light.shadow_enabled = true
 	_light.shadow_filter = PointLight2D.SHADOW_FILTER_PCF5

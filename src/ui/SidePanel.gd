@@ -4,7 +4,8 @@ extends CanvasLayer
 ## Боковое меню игрока. Открывается по Tab.
 ## Вкладки: Атрибуты | Экипировка | Инвентарь | Задания | Навыки
 
-const PANEL_W: float  = 390.0
+const PANEL_W: float  = 500.0
+const PANEL_H: float  = 600.0
 const SLOT_SIZE: float = 56.0
 const SLOT_COLS: int   = 5
 const SLOT_GAP: float  = 4.0
@@ -50,6 +51,7 @@ const _PAPERDOLL: Array[int] = [
 # ---------------------------------------------------------------------------
 
 var _panel: ColorRect
+var _overlay: ColorRect
 var _toggle_btn: Button
 var _is_open: bool = false
 var _did_pause: bool = false
@@ -95,6 +97,7 @@ func _ready() -> void:
 	_build_toggle_btn()
 	_build_panel()
 	_panel.visible = false
+	_overlay.visible = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -111,7 +114,8 @@ func open(tab: int = TAB_BAG) -> void:
 	_current_tab = tab
 	_refresh_all()
 	_panel.visible = true
-	_toggle_btn.text = "◀"
+	_overlay.visible = true
+	_toggle_btn.visible = false
 	_switch_tab(tab)
 	if not get_tree().paused:
 		get_tree().paused = true
@@ -120,7 +124,8 @@ func open(tab: int = TAB_BAG) -> void:
 
 func close() -> void:
 	_panel.visible = false
-	_toggle_btn.text = "▶"
+	_overlay.visible = false
+	_toggle_btn.visible = true
 	_is_open = false
 	if _did_pause:
 		get_tree().paused = false
@@ -131,27 +136,36 @@ func close() -> void:
 # ---------------------------------------------------------------------------
 
 func _build_toggle_btn() -> void:
+	# Маленькая подсказка в правом нижнем углу
 	_toggle_btn = Button.new()
-	_toggle_btn.text = "▶"
-	_toggle_btn.tooltip_text = "Меню [Tab]"
-	_toggle_btn.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	_toggle_btn.offset_left   = -44.0
-	_toggle_btn.offset_right  = 0.0
-	_toggle_btn.offset_top    = -20.0
-	_toggle_btn.offset_bottom = 20.0
+	_toggle_btn.text = "[Tab] Меню"
+	_toggle_btn.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_toggle_btn.offset_left   = -110.0
+	_toggle_btn.offset_right  = -8.0
+	_toggle_btn.offset_top    = -36.0
+	_toggle_btn.offset_bottom = -8.0
 	_toggle_btn.pressed.connect(_toggle)
+	_toggle_btn.add_theme_font_size_override("font_size", 12)
 	UIStyle.apply_btn(_toggle_btn)
 	add_child(_toggle_btn)
 
 
 func _build_panel() -> void:
+	# Затемняющий оверлей за панелью
+	_overlay = ColorRect.new()
+	_overlay.color = Color(0.0, 0.0, 0.0, 0.55)
+	_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_overlay)
+
+	# Центральная панель фиксированного размера
 	_panel = ColorRect.new()
 	_panel.color = Color(0.09, 0.09, 0.13, 0.97)
-	_panel.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
-	_panel.offset_left = -PANEL_W
-	_panel.offset_right = 0.0
-	_panel.offset_top = 0.0
-	_panel.offset_bottom = 0.0
+	_panel.set_anchors_preset(Control.PRESET_CENTER)
+	_panel.offset_left   = -PANEL_W * 0.5
+	_panel.offset_right  =  PANEL_W * 0.5
+	_panel.offset_top    = -PANEL_H * 0.5
+	_panel.offset_bottom =  PANEL_H * 0.5
 	add_child(_panel)
 
 	var vbox := VBoxContainer.new()
