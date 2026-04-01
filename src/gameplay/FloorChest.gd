@@ -5,6 +5,11 @@ extends Area2D
 
 ## Золото за открытие. Выставляется FloorScene перед add_child.
 var gold_reward: int = 60
+## Этаж (1–3). Влияет на выбор loot table.
+var floor_index: int = 1
+
+const _LOOT_TABLE_NORMAL    := "res://assets/data/loot/chest.tres"
+const _LOOT_TABLE_BOSS_FLOOR := "res://assets/data/loot/chest_boss_floor.tres"
 
 var _player_nearby: bool = false
 var _opened: bool = false
@@ -99,3 +104,22 @@ func _open() -> void:
 	tw2.tween_property(lbl, "position:y", -80.0, 1.2)
 	tw2.parallel().tween_property(lbl, "modulate:a", 0.0, 1.2)
 	tw2.tween_callback(lbl.queue_free)
+
+	# Лут-ролл
+	_roll_loot()
+
+
+func _roll_loot() -> void:
+	var table_path: String = _LOOT_TABLE_BOSS_FLOOR if floor_index >= 3 else _LOOT_TABLE_NORMAL
+	if not ResourceLoader.exists(table_path):
+		return
+	var table := load(table_path) as LootTable
+	if table == null:
+		return
+	var item: ItemResource = table.roll()
+	if item == null:
+		return
+	var pickup := LootPickup.new()
+	pickup.item = item
+	pickup.position = global_position + Vector2(randf_range(-20, 20), -20)
+	get_tree().current_scene.add_child(pickup)

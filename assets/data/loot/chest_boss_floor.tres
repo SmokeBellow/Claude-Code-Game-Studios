@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LootTable" format=3 uid="uid://loot_chest_boss_floor"]
+[ext_resource type="Script" path="res://src/core/LootTable.gd" id="1_loot"]
+[resource]
+script = ExtResource("1_loot")
+drop_chance = 0.90
+common_items = ["leather_gloves", "silver_ring"]
+uncommon_items = ["steel_sword", "chainmail", "iron_helmet", "iron_gauntlets", "enchanted_ring", "mage_robes"]
+rare_items = ["elven_blade"]
+epic_items = ["shadowblade"]
+weight_common = 0.10
+weight_uncommon = 0.50
+weight_rare = 0.30
+weight_epic = 0.10

@@ -79,6 +79,12 @@ var _bag_info_label: Label
 var _bag_equip_btn: Button
 var _bag_sell_btn: Button
 
+# Tooltip предмета при наведении
+var _tooltip_box: PanelContainer
+var _tooltip_name_lbl: Label
+var _tooltip_stats_lbl: Label
+var _tooltip_sell_lbl: Label
+
 # Задания
 var _quest_text: Label
 
@@ -452,10 +458,49 @@ func _build_bag_view(parent: Control) -> Control:
 
 	# Сетка слотов
 	_bag_grid = GridContainer.new()
+	_bag_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_bag_grid.columns = SLOT_COLS
 	_bag_grid.add_theme_constant_override("h_separation", int(SLOT_GAP))
 	_bag_grid.add_theme_constant_override("v_separation", int(SLOT_GAP))
 	view.add_child(_bag_grid)
+
+	# Tooltip предмета (появляется при наведении)
+	_tooltip_box = PanelContainer.new()
+	var tooltip_style := StyleBoxFlat.new()
+	tooltip_style.bg_color = Color(0.07, 0.07, 0.11, 0.97)
+	tooltip_style.border_color = Color(0.35, 0.35, 0.45)
+	tooltip_style.set_border_width_all(1)
+	tooltip_style.set_corner_radius_all(4)
+	_tooltip_box.add_theme_stylebox_override("panel", tooltip_style)
+	_tooltip_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tooltip_box.hide()
+	view.add_child(_tooltip_box)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 7)
+	margin.add_theme_constant_override("margin_bottom", 7)
+	_tooltip_box.add_child(margin)
+
+	var tvb := VBoxContainer.new()
+	tvb.add_theme_constant_override("separation", 3)
+	margin.add_child(tvb)
+
+	_tooltip_name_lbl = Label.new()
+	_tooltip_name_lbl.add_theme_font_size_override("font_size", 14)
+	tvb.add_child(_tooltip_name_lbl)
+
+	_tooltip_stats_lbl = Label.new()
+	_tooltip_stats_lbl.add_theme_font_size_override("font_size", 12)
+	_tooltip_stats_lbl.add_theme_color_override("font_color", Color(0.70, 0.70, 0.75))
+	_tooltip_stats_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tvb.add_child(_tooltip_stats_lbl)
+
+	_tooltip_sell_lbl = Label.new()
+	_tooltip_sell_lbl.add_theme_font_size_override("font_size", 11)
+	_tooltip_sell_lbl.add_theme_color_override("font_color", Color(0.65, 0.60, 0.35))
+	tvb.add_child(_tooltip_sell_lbl)
 
 	return view
 
@@ -666,6 +711,8 @@ func _refresh_bag() -> void:
 	_selected_bag_idx = -1
 	_bag_action_panel.hide()
 	_bag_info_label.text = ""
+	if _tooltip_box != null:
+		_tooltip_box.hide()
 
 	var inv := _get_inventory()
 	if inv == null:
@@ -718,6 +765,8 @@ func _make_bag_slot(item: ItemResource, idx: int) -> Button:
 
 	btn.toggle_mode = true
 	btn.pressed.connect(_on_bag_slot_clicked.bind(idx))
+	btn.mouse_entered.connect(_on_bag_slot_hovered.bind(idx))
+	btn.mouse_exited.connect(_on_bag_slot_hover_end)
 	return btn
 
 
@@ -857,6 +906,31 @@ func _on_equip_unequip_selected() -> void:
 # ---------------------------------------------------------------------------
 # Обработчики — Инвентарь
 # ---------------------------------------------------------------------------
+
+func _on_bag_slot_hovered(idx: int) -> void:
+	var inv := _get_inventory()
+	if inv == null:
+		return
+	var bag := inv.get_bag()
+	if idx >= bag.size():
+		return
+	var item: ItemResource = bag[idx]
+	_tooltip_name_lbl.text = item.display_name
+	_tooltip_name_lbl.add_theme_color_override("font_color", item.rarity_color())
+	var slot_str: String = EQUIP_SLOTS[item.slot] if not item.is_junk else "Мусор"
+	var bonuses: String = item.bonus_summary()
+	_tooltip_stats_lbl.text = "%s  •  %s%s" % [
+		_rarity_name(item.rarity), slot_str,
+		("\n" + bonuses) if not bonuses.is_empty() else ""
+	]
+	_tooltip_sell_lbl.text = "Продать: %d зол." % item.sell_value()
+	_tooltip_box.show()
+
+
+func _on_bag_slot_hover_end() -> void:
+	if _tooltip_box != null:
+		_tooltip_box.hide()
+
 
 func _on_bag_slot_clicked(idx: int) -> void:
 	# Снять выделение с предыдущего

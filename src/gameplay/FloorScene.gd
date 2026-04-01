@@ -272,6 +272,7 @@ func _spawn_chests() -> void:
 		var chest := FloorChest.new()
 		# Этаж 2 — более ценный сундук
 		chest.gold_reward = 120 if _floor_index == 2 else 60
+		chest.floor_index = _floor_index
 		chest.position = _layout.world_center(ct)
 		add_child(chest)
 
