@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_leather_boots"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "leather_boots"
+display_name = "Кожаные сапоги"
+rarity = 0
+slot = 4
+bonus_dexterity = 2.0

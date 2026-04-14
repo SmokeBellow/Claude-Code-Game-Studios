@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="DashAbility" format=3 uid="uid://c67p81aspmlid"]
+
+[ext_resource type="Script" uid="uid://vrepuhcc6d0i" path="res://src/gameplay/DashAbility.gd" id="1_coh5c"]
+
+[resource]
+script = ExtResource("1_coh5c")

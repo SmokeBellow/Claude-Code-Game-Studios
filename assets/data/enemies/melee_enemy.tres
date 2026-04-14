@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://bjid4x5s5w077"]
+
+[ext_resource type="Script" uid="uid://blheymtufthxf" path="res://src/core/EnemyData.gd" id="1_pk2n4"]
+
+[resource]
+script = ExtResource("1_pk2n4")
+display_name = "Страж"
+max_hp = 140.0
+move_speed = 110.0
+attack_damage = 14.0
+attack_range = 55.0
+attack_cooldown = 0.7
+attack_windup = 0.4
+aggro_range = 250.0
+aggro_angle = 360.0
+patrol_radius = 70.0
+xp_reward = 20
+loot_table_id = "melee_common"

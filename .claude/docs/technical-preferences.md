@@ -5,30 +5,30 @@
 
 ## Engine & Language
 
-- **Engine**: [TO BE CONFIGURED — run /setup-engine]
-- **Language**: [TO BE CONFIGURED]
-- **Rendering**: [TO BE CONFIGURED]
-- **Physics**: [TO BE CONFIGURED]
+- **Engine**: Godot 4.6
+- **Language**: GDScript (primary), C++ via GDExtension (performance-critical)
+- **Rendering**: Forward+ (default)
+- **Physics**: Jolt Physics (default в Godot 4.6)
 
 ## Naming Conventions
 
-- **Classes**: [TO BE CONFIGURED]
-- **Variables**: [TO BE CONFIGURED]
-- **Signals/Events**: [TO BE CONFIGURED]
-- **Files**: [TO BE CONFIGURED]
-- **Scenes/Prefabs**: [TO BE CONFIGURED]
-- **Constants**: [TO BE CONFIGURED]
+- **Classes**: PascalCase (пример: `PlayerController`)
+- **Variables/Functions**: snake_case (пример: `move_speed`, `take_damage()`)
+- **Signals/Events**: snake_case, прошедшее время (пример: `health_changed`, `enemy_died`)
+- **Files**: snake_case совпадает с классом (пример: `player_controller.gd`)
+- **Scenes/Prefabs**: PascalCase совпадает с корневым узлом (пример: `PlayerController.tscn`)
+- **Constants**: UPPER_SNAKE_CASE (пример: `MAX_HEALTH`)
 
 ## Performance Budgets
 
-- **Target Framerate**: [TO BE CONFIGURED]
-- **Frame Budget**: [TO BE CONFIGURED]
+- **Target Framerate**: 60 FPS
+- **Frame Budget**: 16.6 ms
 - **Draw Calls**: [TO BE CONFIGURED]
 - **Memory Ceiling**: [TO BE CONFIGURED]
 
 ## Testing
 
-- **Framework**: [TO BE CONFIGURED]
+- **Framework**: GUT (Godot Unit Testing)
 - **Minimum Coverage**: [TO BE CONFIGURED]
 - **Required Tests**: Balance formulas, gameplay systems, networking (if applicable)
 

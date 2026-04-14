@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://ranged_enemy_scene"]
+
+[ext_resource type="Script" path="res://src/ai/RangedEnemy.gd" id="1_ranged"]
+[ext_resource type="Resource" uid="uid://ranged_enemy_data" path="res://assets/data/enemies/ranged_enemy.tres" id="2_ranged"]
+[ext_resource type="Script" uid="uid://dgu5g27dnw7s5" path="res://src/core/HealthComponent.gd" id="3_fulih"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ranged"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ranged"]
+
+[node name="RangedEnemy" type="CharacterBody2D" unique_id=3000000001 node_paths=PackedStringArray("health")]
+script = ExtResource("1_ranged")
+data = ExtResource("2_ranged")
+health = NodePath("HealthComponent")
+modulate = Color(0.3, 0.85, 0.5, 1)
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=3000000002]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=3000000003]
+shape = SubResource("CapsuleShape2D_ranged")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=3000000004]
+scale = Vector2(10, 10)
+texture = SubResource("PlaceholderTexture2D_ranged")
+
+[node name="HealthComponent" type="Node" parent="." unique_id=3000000005]
+script = ExtResource("3_fulih")
+max_hp_override = 40.0
+metadata/_custom_type_script = "uid://dgu5g27dnw7s5"

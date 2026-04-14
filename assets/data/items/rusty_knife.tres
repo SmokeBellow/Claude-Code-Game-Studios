@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_rusty_knife"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "rusty_knife"
+display_name = "Ржавый нож"
+rarity = 0
+slot = 0
+is_junk = true
+junk_value = 8

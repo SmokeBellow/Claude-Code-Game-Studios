@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_silver_ring"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "silver_ring"
+display_name = "Серебряное кольцо"
+rarity = 0
+slot = 6
+bonus_luck = 2.0

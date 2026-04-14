@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://ranged_enemy_data"]
+
+[ext_resource type="Script" uid="uid://blheymtufthxf" path="res://src/core/EnemyData.gd" id="1_pk2n4"]
+
+[resource]
+script = ExtResource("1_pk2n4")
+display_name = "Лучник"
+max_hp = 65.0
+move_speed = 95.0
+attack_damage = 22.0
+attack_range = 200.0
+attack_cooldown = 1.8
+attack_windup = 0.6
+aggro_range = 320.0
+aggro_angle = 360.0
+patrol_radius = 70.0
+xp_reward = 25
+loot_table_id = "ranged_common"

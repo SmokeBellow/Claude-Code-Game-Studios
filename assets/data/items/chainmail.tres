@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_chainmail"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "chainmail"
+display_name = "Кольчуга"
+rarity = 1
+slot = 2
+required_level = 3
+bonus_endurance = 5.0

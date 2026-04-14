@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://dng7t1gd2rrbg"]
+
+[ext_resource type="Script" uid="uid://b1x2ut24on3f5" path="res://src/gameplay/Player.gd" id="1_3vyb7"]
+[ext_resource type="Script" uid="uid://chn6f2afhkomg" path="res://src/core/StatsComponent.gd" id="2_qhqgy"]
+[ext_resource type="Script" uid="uid://dgu5g27dnw7s5" path="res://src/core/HealthComponent.gd" id="3_dqkch"]
+[ext_resource type="Script" uid="uid://bds5qq21j7umy" path="res://src/gameplay/GameCamera.gd" id="4_dqkch"]
+[ext_resource type="Script" uid="uid://c77qihqfl4g16" path="res://src/gameplay/CombatComponent.gd" id="5_qlg0r"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_g2els"]
+height = 24.0
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_3vyb7"]
+
+[node name="Player" type="CharacterBody2D" unique_id=263356863 node_paths=PackedStringArray("stats", "health") groups=["player"]]
+position = Vector2(640, 320)
+script = ExtResource("1_3vyb7")
+stats = NodePath("StatsComponent")
+health = NodePath("HealthComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=360675154]
+shape = SubResource("CapsuleShape2D_g2els")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1056678836]
+scale = Vector2(10, 10)
+texture = SubResource("PlaceholderTexture2D_3vyb7")
+
+[node name="StatsComponent" type="Node" parent="." unique_id=581340487]
+script = ExtResource("2_qhqgy")
+
+[node name="HealthComponent" type="Node" parent="." unique_id=535517863 node_paths=PackedStringArray("stats")]
+script = ExtResource("3_dqkch")
+stats = NodePath("../StatsComponent")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=69881247 node_paths=PackedStringArray("target")]
+script = ExtResource("4_dqkch")
+target = NodePath("..")
+
+[node name="CombatComponent" type="Node" parent="." unique_id=2036042011 node_paths=PackedStringArray("player", "stats", "health")]
+script = ExtResource("5_qlg0r")
+player = NodePath("..")
+stats = NodePath("../StatsComponent")
+health = NodePath("../HealthComponent")

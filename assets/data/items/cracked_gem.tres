@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_cracked_gem"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "cracked_gem"
+display_name = "Треснутый самоцвет"
+rarity = 0
+slot = 5
+is_junk = true
+junk_value = 22

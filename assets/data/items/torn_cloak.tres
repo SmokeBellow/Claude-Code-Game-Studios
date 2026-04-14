@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://item_torn_cloak"]
+[ext_resource type="Script" path="res://src/core/ItemResource.gd" id="1_item"]
+[resource]
+script = ExtResource("1_item")
+item_id = "torn_cloak"
+display_name = "Рваный плащ"
+rarity = 0
+slot = 2
+is_junk = true
+junk_value = 5

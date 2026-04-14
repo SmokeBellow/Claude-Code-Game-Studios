@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://cf2q4hi6nsc6l"]
+
+[ext_resource type="Script" uid="uid://d3hdc4q2cwq0q" path="res://src/ui/HUD.gd" id="1_ahhtf"]
+[ext_resource type="Script" uid="uid://c6vwapyxtomgb" path="res://src/ui/Minimap.gd" id="2_oo0fn"]
+
+[node name="HUD" type="CanvasLayer" unique_id=605276330]
+script = ExtResource("1_ahhtf")
+
+[node name="Container" type="Control" parent="." unique_id=2012872559]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 230.0
+offset_bottom = 130.0
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="Container" unique_id=1118878761]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LevelLabel" type="Label" parent="Container/VBox" unique_id=1531849327]
+layout_mode = 2
+text = "Уровень 1"
+
+[node name="HPLabel" type="Label" parent="Container/VBox" unique_id=315657029]
+layout_mode = 2
+text = "Здоровье"
+
+[node name="HPBar" type="ProgressBar" parent="Container/VBox" unique_id=393777809]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+show_percentage = false
+
+[node name="HPLabel" type="Label" parent="Container/VBox/HPBar" unique_id=915887564]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "100/100"
+horizontal_alignment = 1
+
+[node name="XPLabel" type="Label" parent="Container/VBox" unique_id=1056857203]
+layout_mode = 2
+text = "Опыт"
+
+[node name="XPBar" type="ProgressBar" parent="Container/VBox" unique_id=2075373908]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+max_value = 60.0
+
+[node name="Minimap" type="Control" parent="." unique_id=713135041]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -160.0
+offset_top = 10.0
+offset_right = -120.0
+offset_bottom = 50.0
+grow_horizontal = 0
+script = ExtResource("2_oo0fn")

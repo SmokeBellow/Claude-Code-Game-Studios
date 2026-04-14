@@ -1,0 +1,108 @@
+[gd_scene format=3 uid="uid://j5fwso2f7al8"]
+
+[ext_resource type="Script" uid="uid://dvfrlqnp7a4s1" path="res://CombatPrototype.gd" id="1_5f13y"]
+[ext_resource type="Script" uid="uid://bm0l137hrq6jc" path="res://Player.gd" id="2_rhs5t"]
+[ext_resource type="Script" uid="uid://dp2xkbpuhrq7k" path="res://Enemy.gd" id="3_8o86q"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_63w3a"]
+radius = 14.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_428wg"]
+radius = 14.0
+
+[node name="CombatPrototype" type="Node2D" unique_id=178569501]
+position = Vector2(585, 287)
+script = ExtResource("1_5f13y")
+
+[node name="Player" type="CharacterBody2D" parent="." unique_id=2040631738]
+position = Vector2(1, 198)
+collision_mask = 8
+script = ExtResource("2_rhs5t")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=81829391]
+shape = SubResource("CircleShape2D_63w3a")
+
+[node name="ColorRect" type="ColorRect" parent="Player" unique_id=1396328450]
+offset_left = -14.0
+offset_top = -14.0
+offset_right = 14.0
+offset_bottom = 14.0
+color = Color(0.20582813, 1.347661e-06, 0.95666105, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="Enemies" type="CharacterBody2D" parent="." unique_id=1100556381]
+position = Vector2(-101, -77)
+script = ExtResource("3_8o86q")
+
+[node name="Enemies1" type="CharacterBody2D" parent="Enemies" unique_id=605006209]
+position = Vector2(200, 0)
+collision_layer = 8
+script = ExtResource("3_8o86q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemies1" unique_id=1128093227]
+shape = SubResource("CircleShape2D_428wg")
+
+[node name="ColorRect" type="ColorRect" parent="Enemies/Enemies1" unique_id=1645653120]
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+color = Color(1, 0.019607844, 0, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="Enemies2" type="CharacterBody2D" parent="Enemies" unique_id=1219610904]
+position = Vector2(100, 0)
+collision_layer = 8
+script = ExtResource("3_8o86q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemies2" unique_id=708978522]
+shape = SubResource("CircleShape2D_428wg")
+
+[node name="ColorRect" type="ColorRect" parent="Enemies/Enemies2" unique_id=2087174908]
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+color = Color(1, 0.019607844, 0, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="Enemies3" type="CharacterBody2D" parent="Enemies" unique_id=2072331994]
+position = Vector2(50, 0)
+collision_layer = 8
+script = ExtResource("3_8o86q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemies/Enemies3" unique_id=574457717]
+shape = SubResource("CircleShape2D_428wg")
+
+[node name="ColorRect" type="ColorRect" parent="Enemies/Enemies3" unique_id=951247468]
+offset_left = -11.0
+offset_top = -11.0
+offset_right = 13.0
+offset_bottom = 13.0
+color = Color(1, 0.019607844, 0, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1161604335]
+
+[node name="PlayerHP" type="ProgressBar" parent="UI" unique_id=2048764378]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 210.0
+offset_bottom = 37.0
+
+[node name="AbilityCD" type="Label" parent="UI" unique_id=1091898725]
+offset_left = -3.0
+offset_top = -25.0
+offset_right = 7.0
+offset_bottom = 13.0
+metadata/_edit_use_anchors_ = true
+
+[node name="KillCount" type="Label" parent="UI" unique_id=948487439]
+offset_right = 10.0
+offset_bottom = 60.0
+metadata/_edit_use_anchors_ = true
+
+[node name="RespawnLabel" type="Label" parent="." unique_id=967038452]
+visible = false
+offset_right = 40.0
+offset_bottom = 23.0

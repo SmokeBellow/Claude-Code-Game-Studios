@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://0sc2446585ht"]
+
+[ext_resource type="PackedScene" uid="uid://dng7t1gd2rrbg" path="res://scenes/player.tscn" id="1_o5qli"]
+[ext_resource type="Script" uid="uid://d1ltagtlklur7" path="res://src/gameplay/Main.gd" id="1_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://koexrtkdlmda" path="res://scenes/melee_enemy.tscn" id="3_sugp2"]
+[ext_resource type="Script" uid="uid://hekr2r4rwxq7" path="res://src/gameplay/LevelXPSystem.gd" id="5_tefeu"]
+[ext_resource type="PackedScene" uid="uid://cf2q4hi6nsc6l" path="res://scenes/hud.tscn" id="6_tefeu"]
+[ext_resource type="Script" uid="uid://floor_manager_script" path="res://src/gameplay/FloorManager.gd" id="7_floor"]
+[ext_resource type="Script" uid="uid://dal6regx8s8d2" path="res://src/ui/AttributeScreen.gd" id="9_85g3d"]
+[ext_resource type="PackedScene" uid="uid://ranged_enemy_scene" path="res://scenes/ranged_enemy.tscn" id="10_ranged"]
+[ext_resource type="PackedScene" uid="uid://elite_enemy_scene" path="res://scenes/elite_enemy.tscn" id="11_elite"]
+[ext_resource type="PackedScene" uid="uid://boss_enemy_scene" path="res://scenes/boss_enemy.tscn" id="12_boss"]
+
+[node name="Main" type="Node2D" unique_id=2024175462 node_paths=PackedStringArray("level_xp", "hud", "attribute_screen")]
+script = ExtResource("1_tbgi4")
+level_xp = NodePath("LevelXPSystem")
+hud = NodePath("HUD")
+attribute_screen = NodePath("AttributeScreen")
+
+[node name="Player" parent="." unique_id=263356863 instance=ExtResource("1_o5qli")]
+z_index = 1
+
+[node name="LevelXPSystem" type="Node" parent="." unique_id=21209823]
+script = ExtResource("5_tefeu")
+
+[node name="HUD" parent="." unique_id=605276330 instance=ExtResource("6_tefeu")]
+
+[node name="FloorManager" type="Node" parent="." unique_id=1985693718 node_paths=PackedStringArray("player")]
+script = ExtResource("7_floor")
+player = NodePath("../Player")
+melee_scene = ExtResource("3_sugp2")
+ranged_scene = ExtResource("10_ranged")
+elite_scene = ExtResource("11_elite")
+boss_scene = ExtResource("12_boss")
+
+[node name="AttributeScreen" type="CanvasLayer" parent="." unique_id=90128062]
+script = ExtResource("9_85g3d")
