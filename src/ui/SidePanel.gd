@@ -781,8 +781,10 @@ func _refresh_bag() -> void:
 		_tooltip_box.hide()
 
 	var inv := _get_inventory()
-	var bag: Array[ItemResource] = inv.get_bag() if inv != null else []
-	var max_slots: int = Inventory.BAG_MAX_SIZE
+	var bag: Array[ItemResource] = []
+	if inv != null:
+		bag = inv.get_bag()
+	var max_slots: int = 20  # Inventory.BAG_MAX_SIZE
 
 	# Счётчик заполненности
 	var count_color: Color = Color(0.55, 0.55, 0.60)
