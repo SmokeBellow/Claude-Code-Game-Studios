@@ -38,6 +38,10 @@ dist/
 *.translation
 export_presets.cfg
 *.import
+*.gd.uid
+
+# === Claude Code Worktrees ===
+.claude/worktrees/
 
 # === Engine: Unity ===
 [Ll]ibrary/
