@@ -29,24 +29,24 @@ Vertical Slice, 1 для Polish.
 | 4 | Тайлмап / уровни (inferred) | Core | MVP | Not Started | — | — |
 | 5 | Камера (inferred) | Core | MVP | Not Started | — | — |
 | 6 | Аудио-менеджер (inferred) | Audio | MVP | Not Started | — | — |
-| 7 | Состояние мира (inferred) | Persistence | MVP | Not Started | — | — |
+| 7 | Состояние мира (inferred) | Persistence | MVP | Designed | design/gdd/world-state.md | — |
 | 8 | Система уровней и XP | Progression | MVP | Approved | design/gdd/level-xp-system.md | Здоровье и статы |
 | 9 | Боевая система | Gameplay | MVP | Approved | design/gdd/combat-system.md | Движение игрока, Здоровье и статы |
 | 10 | Система способностей | Gameplay | MVP | Approved | design/gdd/ability-system.md | Здоровье и статы, База данных предметов |
 | 11 | AI врагов (inferred) | Gameplay | MVP | Approved | design/gdd/enemy-ai.md | Движение игрока, Здоровье и статы |
 | 12 | Лут-система | Economy | MVP | Approved | design/gdd/loot-system.md | База данных предметов |
 | 13 | Управление сценами (inferred) | Core | MVP | Not Started | — | Тайлмап / уровни |
-| 14 | Диалоговая система (inferred) | Narrative | MVP | Not Started | — | Состояние мира |
-| 15 | Система классов | Progression | MVP | Not Started | — | Система уровней и XP |
+| 14 | Диалоговая система (inferred) | Narrative | MVP | Designed | design/gdd/dialogue-system.md | Состояние мира |
+| 15 | Система классов | Progression | MVP | Designed | design/gdd/skill-tree.md | Система уровней и XP, Боевая система, Система способностей |
 | 16 | Дерево навыков | Progression | MVP | Not Started | — | Система классов, Система способностей |
-| 17 | Инвентарь (inferred) | Economy | MVP | Not Started | — | Лут-система, База данных предметов |
+| 17 | Инвентарь (inferred) | Economy | MVP | Designed | design/gdd/inventory.md | Лут-система, База данных предметов |
 | 18 | Комнатная структура данжей | Gameplay | MVP | Not Started | — | Тайлмап / уровни, Управление сценами, Состояние мира |
 | 19 | Система загадок | Gameplay | MVP | Not Started | — | Комнатная структура данжей, Система способностей |
-| 20 | Система НПС | Narrative | MVP | Not Started | — | Диалоговая система, Состояние мира |
-| 21 | Система квестов | Narrative | MVP | Not Started | — | Система НПС, Состояние мира |
-| 22 | Магазин (inferred) | Economy | MVP | Not Started | — | Инвентарь, Система НПС |
+| 20 | Система НПС | Narrative | MVP | Designed | design/gdd/npc-system.md | Диалоговая система, Состояние мира |
+| 21 | Система квестов | Narrative | MVP | Designed | design/gdd/quest-system.md | Система НПС, Состояние мира |
+| 22 | Магазин (inferred) | Economy | MVP | Designed | design/gdd/shop.md | Инвентарь, Система НПС |
 | 23 | Система боссов (inferred) | Gameplay | MVP | Not Started | — | Боевая система, AI врагов |
-| 24 | Сохранение / загрузка (inferred) | Persistence | MVP | Not Started | — | Состояние мира, Инвентарь, Система уровней и XP |
+| 24 | Сохранение / загрузка (inferred) | Persistence | MVP | Designed | design/gdd/save-load.md | Состояние мира, Инвентарь, Система уровней и XP |
 | 25 | HUD (inferred) | UI | MVP | Not Started | — | Боевая система, Здоровье и статы, Комнатная структура данжей |
 | 26 | Боевой фидбек (inferred) | UI | MVP | Not Started | — | Боевая система, Аудио-менеджер |
 | 27 | UI инвентаря и дерева навыков (inferred) | UI | MVP | Not Started | — | Инвентарь, Дерево навыков |
@@ -151,7 +151,7 @@ Vertical Slice, 1 для Polish.
 | 14 | Диалоговая система | MVP | Core | narrative-director | M |
 | 15 | Система классов | MVP | Feature | game-designer | M |
 | 16 | Дерево навыков | MVP | Feature | systems-designer | M |
-| 17 | Инвентарь | MVP | Feature | game-designer | S |
+| 17 | Инвентарь | MVP | Feature | game-designer | M |
 | 18 | Комнатная структура данжей | MVP | Feature | level-designer | M |
 | 19 | Система загадок | MVP | Feature | game-designer | M |
 | 20 | Система НПС | MVP | Feature | narrative-director | M |
@@ -191,10 +191,10 @@ Vertical Slice, 1 для Polish.
 | Метрика | Количество |
 |---------|-----------|
 | Всего систем идентифицировано | 30 |
-| Design docs начато | 8 |
+| Design docs начато | 16 |
 | Design docs проверено | 8 |
 | Design docs утверждено | 8 |
-| MVP системы спроектированы | 8 / 28 |
+| MVP системы спроектированы | 16 / 28 |
 | Vertical Slice системы спроектированы | 0 / 1 |
 
 ---

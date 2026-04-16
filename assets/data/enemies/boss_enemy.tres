@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1_pk2n4")
 display_name = "Страж Данжа"
-max_hp = 600.0
-move_speed = 95.0
-attack_damage = 38.0
+max_hp = 900.0
+move_speed = 120.0
+attack_damage = 52.0
 attack_range = 60.0
 attack_cooldown = 0.9
 attack_windup = 0.5
@@ -16,3 +16,5 @@ aggro_angle = 360.0
 patrol_radius = 80.0
 xp_reward = 300
 loot_table_id = "boss"
+hp_scale_coeff = 150.0
+damage_reduction = 0.1
