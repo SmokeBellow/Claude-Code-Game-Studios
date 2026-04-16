@@ -77,7 +77,8 @@ func save() -> bool:
 	var tmp_path := SAVE_PATH + ".tmp"
 	var file := FileAccess.open(tmp_path, FileAccess.WRITE)
 	if file == null:
-		var reason := "Не удалось открыть %s для записи (err=%d)" % [tmp_path, FileAccess.get_open_error()]
+		var err_code: int = FileAccess.get_open_error() if FileAccess.has_method("get_open_error") else -1
+		var reason := "Не удалось открыть %s для записи (err=%d)" % [tmp_path, err_code]
 		push_error("SaveSystem: " + reason)
 		save_failed.emit(reason)
 		return false
@@ -116,13 +117,25 @@ func load_game() -> bool:
 	var content := file.get_as_text()
 	file.close()
 
-	var parsed := JSON.parse_string(content)
-	if parsed == null or not (parsed is Dictionary):
-		push_error("SaveSystem: повреждённый JSON в %s" % SAVE_PATH)
+	if content.is_empty():
+		push_error("SaveSystem: файл сохранения пуст — %s" % SAVE_PATH)
+		save_failed.emit("Файл сохранения пуст")
+		return false
+
+	var json := JSON.new()
+	var parse_err := json.parse(content)
+	if parse_err != OK:
+		push_error("SaveSystem: ошибка парсинга JSON (строка %d): %s" % [json.get_error_line(), json.get_error_message()])
 		save_failed.emit("Файл сохранения повреждён")
 		return false
 
-	var data: Dictionary = parsed
+	var parsed: Variant = json.data
+	if not (parsed is Dictionary):
+		push_error("SaveSystem: неожиданный тип данных в сейве: %s" % typeof(parsed))
+		save_failed.emit("Файл сохранения повреждён")
+		return false
+
+	var data: Dictionary = parsed as Dictionary
 	_distribute(data)
 	_restore_callbacks()
 
