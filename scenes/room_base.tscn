@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://d4evt2ewcromp"]
+
+[ext_resource type="Script" path="res://src/gameplay/Room.gd" id="1_room"]
+[ext_resource type="Script" path="res://src/gameplay/DoorTrigger.gd" id="2_iwwye"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ns"]
+size = Vector2(120, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ns2"]
+size = Vector2(120, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ew"]
+size = Vector2(32, 120)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ew2"]
+size = Vector2(32, 120)
+
+[node name="Room" type="Node2D" unique_id=2126018843]
+script = ExtResource("1_room")
+
+[node name="DoorNorth" type="Area2D" parent="." unique_id=1973093548]
+position = Vector2(800, 0)
+script = ExtResource("2_iwwye")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DoorNorth" unique_id=508583905]
+shape = SubResource("RectangleShape2D_ns")
+
+[node name="DoorSouth" type="Area2D" parent="." unique_id=2087627455]
+position = Vector2(800, 1000)
+script = ExtResource("2_iwwye")
+direction = "south"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DoorSouth" unique_id=1000540440]
+shape = SubResource("RectangleShape2D_ns2")
+
+[node name="DoorWest" type="Area2D" parent="." unique_id=63559115]
+position = Vector2(0, 500)
+script = ExtResource("2_iwwye")
+direction = "west"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DoorWest" unique_id=1927269739]
+shape = SubResource("RectangleShape2D_ew")
+
+[node name="DoorEast" type="Area2D" parent="." unique_id=416411011]
+position = Vector2(1600, 500)
+script = ExtResource("2_iwwye")
+direction = "east"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DoorEast" unique_id=560111525]
+shape = SubResource("RectangleShape2D_ew2")
+
+[node name="SpawnPoint" type="Node2D" parent="." unique_id=1408521800 groups=["spawn_point"]]
+position = Vector2(800, 490)
+
+[node name="SpawnPoint2" type="Node2D" parent="." unique_id=1917098095 groups=["spawn_point"]]
+position = Vector2(300, 350)
+
+[node name="SpawnPoint3" type="Node2D" parent="." unique_id=1944389194 groups=["spawn_point"]]
+position = Vector2(1300, 350)
+
+[node name="SpawnPoint4" type="Node2D" parent="." unique_id=588283832 groups=["spawn_point"]]
+position = Vector2(300, 650)
+
+[node name="SpawnPoint5" type="Node2D" parent="." unique_id=628105000 groups=["spawn_point"]]
+position = Vector2(1300, 650)
+
+[node name="SpawnPoint6" type="Node2D" parent="." unique_id=653652139 groups=["spawn_point"]]
+position = Vector2(550, 350)
+
+[node name="SpawnPoint7" type="Node2D" parent="." unique_id=1302624611 groups=["spawn_point"]]
+position = Vector2(1100, 350)
+
+[node name="SpawnPoint8" type="Node2D" parent="." unique_id=1831349254 groups=["spawn_point"]]
+position = Vector2(550, 650)
+
+[node name="SpawnPoint9" type="Node2D" parent="." unique_id=1579243308 groups=["spawn_point"]]
+position = Vector2(1100, 650)
