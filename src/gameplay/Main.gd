@@ -50,12 +50,19 @@ func _ready() -> void:
 		combat = player.get_node_or_null("CombatComponent") as CombatComponent
 
 		# Добавляем ClassAbilitySystem как дочерний к игроку.
+		var stats := player.get_node_or_null("StatsComponent") as StatsComponent
 		var cas := ClassAbilitySystem.new()
 		cas.name = "ClassAbilitySystem"
 		cas.player = player as CharacterBody2D
-		cas.stats  = player.get_node_or_null("StatsComponent") as StatsComponent
+		cas.stats  = stats
 		cas.health = player.get_node_or_null("HealthComponent") as HealthComponent
 		player.add_child(cas)
+
+		# Дерево навыков.
+		var skill_tree := SkillTree.new()
+		skill_tree.name = "SkillTree"
+		player.add_child(skill_tree)
+		skill_tree.setup(stats, cas, level_xp)
 		break
 
 	# FloorManager спавнит врагов deferred и сам вызывает wire_enemy().

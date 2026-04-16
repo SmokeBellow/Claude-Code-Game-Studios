@@ -93,6 +93,10 @@ var _quest_text: Label
 # Навыки — классовые слоты (хранятся для обновления)
 var _skill_rows: Array[HBoxContainer] = []
 
+# Навыки — дерево навыков
+var _skill_pts_label: Label = null
+var _skill_tree_container: VBoxContainer = null
+
 # ---------------------------------------------------------------------------
 # Lifecycle
 # ---------------------------------------------------------------------------
@@ -693,6 +697,30 @@ func _build_skills_view(parent: Control) -> Control:
 		cd_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 		info_col.add_child(cd_lbl)
 
+	view.add_child(UIStyle.separator())
+
+	# Раздел: дерево навыков
+	var tree_hdr := HBoxContainer.new()
+	tree_hdr.add_theme_constant_override("separation", 8)
+	view.add_child(tree_hdr)
+
+	var tree_title := Label.new()
+	tree_title.text = "  Дерево навыков"
+	tree_title.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
+	tree_title.add_theme_font_size_override("font_size", 13)
+	tree_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tree_hdr.add_child(tree_title)
+
+	_skill_pts_label = Label.new()
+	_skill_pts_label.text = "Очков: 0"
+	_skill_pts_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	_skill_pts_label.add_theme_font_size_override("font_size", 13)
+	tree_hdr.add_child(_skill_pts_label)
+
+	_skill_tree_container = VBoxContainer.new()
+	_skill_tree_container.add_theme_constant_override("separation", 2)
+	view.add_child(_skill_tree_container)
+
 	return view
 
 
@@ -947,6 +975,168 @@ func _refresh_skills() -> void:
 				cd_lbl.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4))
 		else:
 			cd_lbl.text = ""
+
+	_refresh_skill_tree()
+
+
+func _refresh_skill_tree() -> void:
+	if _skill_pts_label == null or _skill_tree_container == null:
+		return
+
+	_skill_pts_label.text = "Очков: %d" % PlayerData.skill_points
+
+	# Пересобираем дерево
+	for child in _skill_tree_container.get_children():
+		child.queue_free()
+
+	# Общая ветка — всегда
+	_build_branch_ui("general")
+
+	# Специализации — только когда класс выбран и general >= порога
+	if PlayerData.player_class != PlayerData.CLASS_NONE:
+		var general_pts: int = int(PlayerData.spent_points.get("general", 0))
+		if general_pts >= SkillTree.GENERAL_GATE:
+			for branch_key: String in SkillTree.CLASS_BRANCHES.get(PlayerData.player_class, []):
+				_build_branch_ui(branch_key)
+		else:
+			var remaining: int = SkillTree.GENERAL_GATE - general_pts
+			var hint := Label.new()
+			hint.text = "  Ещё %d очка в «Общие» — откроет специализации" % remaining
+			hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+			hint.add_theme_font_size_override("font_size", 11)
+			hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			_skill_tree_container.add_child(hint)
+	else:
+		var hint := Label.new()
+		hint.text = "  Специализации откроются при выборе класса (ур. 3)"
+		hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		hint.add_theme_font_size_override("font_size", 11)
+		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_skill_tree_container.add_child(hint)
+
+
+func _build_branch_ui(branch_key: String) -> void:
+	var nodes_data: Array = SkillTree.NODES.get(branch_key, [])
+	if nodes_data.is_empty():
+		return
+
+	var pts_in: int = int(PlayerData.spent_points.get(branch_key, 0))
+	var can_buy: bool = PlayerData.skill_points > 0 and pts_in < nodes_data.size()
+
+	# Заголовок ветки
+	var hdr := HBoxContainer.new()
+	hdr.add_theme_constant_override("separation", 8)
+	_skill_tree_container.add_child(hdr)
+
+	var branch_name_lbl := Label.new()
+	branch_name_lbl.text = "  %s" % _branch_display_name(branch_key)
+	branch_name_lbl.add_theme_font_size_override("font_size", 12)
+	branch_name_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
+	branch_name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hdr.add_child(branch_name_lbl)
+
+	var progress_lbl := Label.new()
+	progress_lbl.text = "%d / %d" % [pts_in, nodes_data.size()]
+	progress_lbl.add_theme_font_size_override("font_size", 11)
+	progress_lbl.add_theme_color_override("font_color", Color(0.55, 0.55, 0.55))
+	hdr.add_child(progress_lbl)
+
+	if can_buy:
+		var buy_btn := Button.new()
+		buy_btn.text = "+ Купить"
+		buy_btn.add_theme_font_size_override("font_size", 11)
+		buy_btn.custom_minimum_size = Vector2(78, 22)
+		UIStyle.apply_btn(buy_btn, Color(0.25, 0.55, 0.25))
+		buy_btn.pressed.connect(_on_spend_skill_point.bind(branch_key))
+		hdr.add_child(buy_btn)
+
+	# Список узлов ветки
+	for i: int in range(nodes_data.size()):
+		var nd: Array = nodes_data[i]
+		var unlocked: bool = pts_in > i
+		var is_next: bool  = pts_in == i
+
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		_skill_tree_container.add_child(row)
+
+		# Статус
+		var status_lbl := Label.new()
+		if unlocked:
+			status_lbl.text = "  ✓"
+			status_lbl.add_theme_color_override("font_color", Color(0.35, 0.85, 0.35))
+		elif is_next:
+			status_lbl.text = "  ▷"
+			status_lbl.add_theme_color_override("font_color", Color(0.9, 0.85, 0.3))
+		else:
+			status_lbl.text = "  ○"
+			status_lbl.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
+		status_lbl.add_theme_font_size_override("font_size", 12)
+		status_lbl.custom_minimum_size.x = 28
+		row.add_child(status_lbl)
+
+		# Тип узла
+		var type_lbl := Label.new()
+		match str(nd[0]):
+			"passive":  type_lbl.text = "[П]"
+			"active":   type_lbl.text = "[А]"
+			"ultimate": type_lbl.text = "[У]"
+			_:          type_lbl.text = "[?]"
+		type_lbl.add_theme_font_size_override("font_size", 10)
+		type_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		type_lbl.custom_minimum_size.x = 26
+		row.add_child(type_lbl)
+
+		# Название и описание
+		var info_col := VBoxContainer.new()
+		info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(info_col)
+
+		var name_lbl := Label.new()
+		name_lbl.text = str(nd[1])
+		name_lbl.add_theme_font_size_override("font_size", 12)
+		if unlocked:
+			name_lbl.add_theme_color_override("font_color", Color(0.75, 1.0, 0.75))
+		elif is_next:
+			name_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+		else:
+			name_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
+		info_col.add_child(name_lbl)
+
+		var desc_lbl := Label.new()
+		desc_lbl.text = str(nd[2])
+		desc_lbl.add_theme_font_size_override("font_size", 10)
+		desc_lbl.add_theme_color_override("font_color", Color(0.45, 0.45, 0.45))
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info_col.add_child(desc_lbl)
+
+
+func _on_spend_skill_point(branch_key: String) -> void:
+	var st := _get_skill_tree()
+	if st == null:
+		return
+	if st.spend_point(branch_key):
+		call_deferred("_refresh_skill_tree")
+
+
+func _get_skill_tree() -> SkillTree:
+	var nodes := get_tree().get_nodes_in_group("skill_tree")
+	return nodes[0] as SkillTree if not nodes.is_empty() else null
+
+
+func _branch_display_name(branch_key: String) -> String:
+	match branch_key:
+		"general":          return "Общие навыки"
+		"warrior_berserk":  return "Берсерк"
+		"warrior_tank":     return "Танк"
+		"warrior_paladin":  return "Паладин"
+		"mage_fire":        return "Огонь"
+		"mage_ice":         return "Лёд"
+		"mage_lightning":   return "Молния"
+		"rogue_glass":      return "Стеклянная пушка"
+		"rogue_stealth":    return "Стелс"
+		"rogue_poison":     return "Яд"
+		_:                  return branch_key
 
 
 func _refresh_quests() -> void:

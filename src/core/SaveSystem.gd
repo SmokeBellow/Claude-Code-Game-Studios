@@ -182,6 +182,7 @@ func _serialize_player() -> Dictionary:
 		"attr_points":     PlayerData.saved_attr_points,
 		"ability_unlocked": PlayerData.ability_unlocked,
 		"potion_slots":    PlayerData.potion_slots,
+		"hero_name":       PlayerData.hero_name,
 		"quest_stage":     PlayerData.quest_stage,
 		"quest_kills":     PlayerData.quest_kills,
 		"quest_has_seal":  PlayerData.quest_has_seal,
@@ -190,9 +191,11 @@ func _serialize_player() -> Dictionary:
 
 
 func _serialize_skill_tree() -> Dictionary:
-	# SkillTree ещё не реализован — заглушка для обратной совместимости
-	# TODO S17-08: заменить на SkillTree.serialize() когда система готова
-	return {}
+	return {
+		"version":      1,
+		"skill_points": PlayerData.skill_points,
+		"spent_points": PlayerData.spent_points,
+	}
 
 
 func _serialize_inventory() -> Dictionary:
@@ -232,6 +235,7 @@ func _deserialize_player(p: Dictionary) -> void:
 	PlayerData.saved_arc           = float(p.get("arc",           5.0))
 	PlayerData.saved_lck           = float(p.get("lck",           5.0))
 	PlayerData.saved_attr_points   = int(p.get("attr_points",     0))
+	PlayerData.hero_name           = str(p.get("hero_name",       ""))
 	PlayerData.quest_stage         = int(p.get("quest_stage",     0))
 	PlayerData.quest_kills         = int(p.get("quest_kills",     0))
 	PlayerData.quest_has_seal      = bool(p.get("quest_has_seal", false))
@@ -253,9 +257,10 @@ func _deserialize_player(p: Dictionary) -> void:
 	]
 
 
-func _deserialize_skill_tree(_st: Dictionary) -> void:
-	# stub — TODO S17-08
-	pass
+func _deserialize_skill_tree(st: Dictionary) -> void:
+	PlayerData.skill_points = int(st.get("skill_points", 0))
+	var sp: Variant = st.get("spent_points", {})
+	PlayerData.spent_points = sp if sp is Dictionary else {}
 
 
 func _deserialize_inventory(inv: Dictionary) -> void:
@@ -284,8 +289,12 @@ func _restore_callbacks() -> void:
 
 
 func _try_restore_passives() -> void:
-	# stub — TODO S17-08: SkillTree._restore_passives()
-	pass
+	# SkillTree добавляется как дочерний к игроку — ищем через группу.
+	# Если нода ещё не существует (загрузка из меню), _restore_passives()
+	# будет вызван автоматически в SkillTree.setup() при инициализации сцены.
+	var nodes := get_tree().get_nodes_in_group("skill_tree")
+	if not nodes.is_empty():
+		(nodes[0] as SkillTree)._restore_passives()
 
 
 func _try_reapply_equipment() -> void:
@@ -322,5 +331,8 @@ func _reset_all() -> void:
 	PlayerData.quest_kills         = 0
 	PlayerData.quest_has_seal      = false
 	PlayerData.quest_boss_killed   = false
-	PlayerData.was_resurrected     = false
+	PlayerData.was_resurrected       = false
 	PlayerData.returned_from_dungeon = false
+	PlayerData.skill_points          = 0
+	PlayerData.spent_points          = {}
+	PlayerData.hero_name             = ""

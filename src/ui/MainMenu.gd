@@ -73,26 +73,17 @@ func _ready() -> void:
 
 
 func _on_new_game() -> void:
-	# Сброс данных на старте новой игры
-	PlayerData.gold = 0
-	PlayerData.potion_slots = [0, 0, 0, 0]
-	PlayerData.quest_stage = 0
-	PlayerData.quest_kills = 0
-	PlayerData.quest_has_seal = false
-	PlayerData.quest_boss_killed = false
-	PlayerData.was_resurrected = false
-	PlayerData.player_class = PlayerData.CLASS_NONE
-	PlayerData.ability_unlocked = [false, false, false]
-	PlayerData.saved_level = 1
-	PlayerData.saved_xp = 0
-	PlayerData.saved_str = 5.0
-	PlayerData.saved_dex = 5.0
-	PlayerData.saved_end = 5.0
-	PlayerData.saved_int = 5.0
-	PlayerData.saved_arc = 5.0
-	PlayerData.saved_lck = 5.0
-	PlayerData.saved_attr_points = 0
-	get_tree().change_scene_to_file("res://scenes/town.tscn")
+	# Полный сброс через SaveSystem.new_game()
+	SaveSystem.new_game()
+
+	# Показываем экран ввода имени перед переходом в город
+	var name_screen := NameInputScreen.new()
+	add_child(name_screen)
+	name_screen.name_confirmed.connect(func(hero_name: String) -> void:
+		PlayerData.hero_name = hero_name
+		name_screen.queue_free()
+		get_tree().change_scene_to_file("res://scenes/town.tscn")
+	)
 
 
 func _on_quit() -> void:

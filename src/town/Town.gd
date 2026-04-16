@@ -195,6 +195,13 @@ func _spawn_player() -> void:
 		_player.global_position = Vector2(300, TOWN_H * 0.5)
 	add_child(_player)
 
+	# Дерево навыков — добавляем к игроку чтобы SidePanel мог находить его через группу.
+	var stats := _player.get_node_or_null("StatsComponent") as StatsComponent
+	var skill_tree := SkillTree.new()
+	skill_tree.name = "SkillTree"
+	_player.add_child(skill_tree)
+	skill_tree.setup(stats, null, null)
+
 
 func _setup_camera() -> void:
 	var cam := Camera2D.new()
