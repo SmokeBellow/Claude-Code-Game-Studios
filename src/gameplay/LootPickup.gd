@@ -108,7 +108,10 @@ func _collect(player: Node2D) -> void:
 	tween.tween_callback(func():
 		var inv := get_tree().get_first_node_in_group("inventory")
 		if inv != null and inv.has_method("pickup_item") and item != null:
-			inv.pickup_item(item)
+			var picked: bool = inv.pickup_item(item)
+			if not picked:
+				# Сумка полна — предмет остаётся лежать, нода не удаляется
+				return
 		queue_free()
 	)
 

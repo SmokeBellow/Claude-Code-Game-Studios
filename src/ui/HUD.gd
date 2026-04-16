@@ -25,18 +25,18 @@ extends CanvasLayer
 @onready var _hp_label: Label           = $Container/VBox/HPBar/HPLabel
 
 # ---------------------------------------------------------------------------
-# Блок кулдаунов умений (R / F / G) — строится программно
+# Блок кулдаунов умений (Q / E / F) — строится программно
 # ---------------------------------------------------------------------------
 
 const _SLOT_SIZE:  float = 52.0
 const _SLOT_GAP:   float = 6.0
-const _KEY_NAMES:  Array[String] = ["R", "F", "G"]
+const _KEY_NAMES:  Array[String] = ["Q", "E", "F"]
 
 ## Цвета слотов по индексу (одинаковые для всех классов — различаются по ключу).
 const _SLOT_COLORS: Array[Color] = [
-	Color(0.95, 0.45, 0.3),   # R — воин (UIStyle.COLOR_CLASS_WARRIOR)
-	Color(0.35, 0.65, 1.0),   # F — холодный синий
-	Color(0.3,  0.85, 0.6),   # G — изумрудный (Плут), не конфликтует с «успехом»
+	Color(0.95, 0.45, 0.3),   # Q — воин (UIStyle.COLOR_CLASS_WARRIOR)
+	Color(0.35, 0.65, 1.0),   # E — холодный синий
+	Color(0.3,  0.85, 0.6),   # F — изумрудный (Плут), не конфликтует с «успехом»
 ]
 
 var _ab_bg:      Array[ColorRect] = []

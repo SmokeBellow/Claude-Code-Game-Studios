@@ -78,6 +78,8 @@ var _bag_action_panel: HBoxContainer
 var _bag_info_label: Label
 var _bag_equip_btn: Button
 var _bag_sell_btn: Button
+var _bag_count_label: Label     # "X / 20 предметов"
+var _potion_slot_labels: Array[Label] = []  # 4 лейбла с количеством зелий
 
 # Tooltip предмета при наведении
 var _tooltip_box: PanelContainer
@@ -411,11 +413,24 @@ func _build_bag_view(parent: Control) -> Control:
 	view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(view)
 
+	# Заголовок + счётчик в одной строке
+	var header_row := HBoxContainer.new()
+	view.add_child(header_row)
+
 	var lbl := Label.new()
 	lbl.text = "  ИНВЕНТАРЬ"
 	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 	lbl.add_theme_font_size_override("font_size", 14)
-	view.add_child(lbl)
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(lbl)
+
+	_bag_count_label = Label.new()
+	_bag_count_label.text = "0 / 20"
+	_bag_count_label.add_theme_font_size_override("font_size", 12)
+	_bag_count_label.add_theme_color_override("font_color", Color(0.55, 0.55, 0.60))
+	_bag_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	header_row.add_child(_bag_count_label)
+
 	view.add_child(UIStyle.separator())
 
 	# Инфо выбранного предмета
@@ -456,13 +471,64 @@ func _build_bag_view(parent: Control) -> Control:
 
 	view.add_child(UIStyle.separator())
 
-	# Сетка слотов
+	# Сетка слотов (20 ячеек; пустые отображаются серыми плейсхолдерами)
 	_bag_grid = GridContainer.new()
 	_bag_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_bag_grid.columns = SLOT_COLS
 	_bag_grid.add_theme_constant_override("h_separation", int(SLOT_GAP))
 	_bag_grid.add_theme_constant_override("v_separation", int(SLOT_GAP))
 	view.add_child(_bag_grid)
+
+	view.add_child(UIStyle.separator())
+
+	# Секция зелий — 4 слота (хоткеи 1–4)
+	var potion_hdr := Label.new()
+	potion_hdr.text = "  ЗЕЛЬЯ  (1–4)"
+	potion_hdr.add_theme_color_override("font_color", Color(0.65, 0.85, 0.65))
+	potion_hdr.add_theme_font_size_override("font_size", 13)
+	view.add_child(potion_hdr)
+
+	var potion_row := HBoxContainer.new()
+	potion_row.add_theme_constant_override("separation", 8)
+	view.add_child(potion_row)
+
+	_potion_slot_labels.clear()
+	for i: int in range(4):
+		var slot_box := VBoxContainer.new()
+		slot_box.add_theme_constant_override("separation", 2)
+		slot_box.custom_minimum_size = Vector2(SLOT_SIZE, 0.0)
+		potion_row.add_child(slot_box)
+
+		# Иконка зелья
+		var icon_rect := ColorRect.new()
+		icon_rect.color = Color(0.12, 0.28, 0.12, 0.9)
+		icon_rect.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_box.add_child(icon_rect)
+
+		var icon_lbl := Label.new()
+		icon_lbl.text = "🧪"
+		icon_lbl.add_theme_font_size_override("font_size", 22)
+		icon_lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		icon_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_rect.add_child(icon_lbl)
+
+		# Счётчик
+		var count_lbl := Label.new()
+		count_lbl.text = "0"
+		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		count_lbl.add_theme_font_size_override("font_size", 14)
+		count_lbl.add_theme_color_override("font_color", Color(0.7, 1.0, 0.7))
+		slot_box.add_child(count_lbl)
+		_potion_slot_labels.append(count_lbl)
+
+		# Клавиша
+		var key_lbl := Label.new()
+		key_lbl.text = "[%d]" % (i + 1)
+		key_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		key_lbl.add_theme_font_size_override("font_size", 11)
+		key_lbl.add_theme_color_override("font_color", Color(0.45, 0.45, 0.5))
+		slot_box.add_child(key_lbl)
 
 	# Tooltip предмета (появляется при наведении)
 	_tooltip_box = PanelContainer.new()
@@ -592,7 +658,7 @@ func _build_skills_view(parent: Control) -> Control:
 	view.add_child(class_lbl)
 
 	_skill_rows.clear()
-	const KEY_LABELS: Array[String] = ["[R]", "[F]", "[G]"]
+	const KEY_LABELS: Array[String] = ["[Q]", "[E]", "[F]"]
 	for i: int in range(3):
 		var slot_row := HBoxContainer.new()
 		slot_row.add_theme_constant_override("separation", 10)
@@ -715,15 +781,37 @@ func _refresh_bag() -> void:
 		_tooltip_box.hide()
 
 	var inv := _get_inventory()
-	if inv == null:
-		return
+	var bag: Array[ItemResource] = inv.get_bag() if inv != null else []
+	var max_slots: int = Inventory.BAG_MAX_SIZE
 
-	var bag: Array[ItemResource] = inv.get_bag()
-	for i in range(bag.size()):
-		var item: ItemResource = bag[i]
-		var slot := _make_bag_slot(item, i)
-		_bag_grid.add_child(slot)
-		_bag_slots.append(slot)
+	# Счётчик заполненности
+	var count_color: Color = Color(0.55, 0.55, 0.60)
+	if bag.size() >= max_slots:
+		count_color = Color(1.0, 0.45, 0.35)   # красный — полная
+	elif bag.size() >= max_slots * 0.8:
+		count_color = Color(1.0, 0.75, 0.3)    # жёлтый — почти полная
+	if _bag_count_label != null:
+		_bag_count_label.text = "%d / %d" % [bag.size(), max_slots]
+		_bag_count_label.add_theme_color_override("font_color", count_color)
+
+	# Строим все 20 слотов: занятые — с предметом, пустые — серый плейсхолдер
+	for i: int in range(max_slots):
+		if i < bag.size():
+			var slot := _make_bag_slot(bag[i], i)
+			_bag_grid.add_child(slot)
+			_bag_slots.append(slot)
+		else:
+			var empty := _make_bag_slot_empty()
+			_bag_grid.add_child(empty)
+			_bag_slots.append(empty)
+
+	# Обновляем секцию зелий
+	for i: int in range(4):
+		if i < _potion_slot_labels.size():
+			var count: int = PlayerData.potion_slots[i]
+			_potion_slot_labels[i].text = str(count)
+			var c: Color = Color(0.7, 1.0, 0.7) if count > 0 else Color(0.35, 0.35, 0.35)
+			_potion_slot_labels[i].add_theme_color_override("font_color", c)
 
 
 func _make_bag_slot(item: ItemResource, idx: int) -> Button:
@@ -767,6 +855,30 @@ func _make_bag_slot(item: ItemResource, idx: int) -> Button:
 	btn.pressed.connect(_on_bag_slot_clicked.bind(idx))
 	btn.mouse_entered.connect(_on_bag_slot_hovered.bind(idx))
 	btn.mouse_exited.connect(_on_bag_slot_hover_end)
+	return btn
+
+
+## Пустой слот сумки — серый плейсхолдер без обработчиков.
+func _make_bag_slot_empty() -> Button:
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_filter = Control.MOUSE_FILTER_PASS  # не перехватывает события
+
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.10, 0.10, 0.12, 1.0)
+	bg.border_color = Color(0.20, 0.20, 0.24)
+	bg.border_width_left   = 1
+	bg.border_width_right  = 1
+	bg.border_width_top    = 1
+	bg.border_width_bottom = 1
+	btn.add_theme_stylebox_override("normal",   bg)
+	btn.add_theme_stylebox_override("hover",    bg)
+	btn.add_theme_stylebox_override("pressed",  bg)
+	btn.add_theme_stylebox_override("disabled", bg)
+	btn.add_theme_color_override("font_color", Color(0.22, 0.22, 0.26))
+	btn.add_theme_font_size_override("font_size", 18)
+	btn.text = "·"
 	return btn
 
 
@@ -848,24 +960,24 @@ func _refresh_quests() -> void:
 		return
 
 	if stage == 1:
-		var progress: String = "%d / %d" % [PlayerData.quest_kills, PlayerData.QUEST_KILL_TARGET]
-		var ready: bool = PlayerData.quest_kills >= PlayerData.QUEST_KILL_TARGET
+		var progress: String = "%d / %d" % [PlayerData.quest_kills, QuestSystem.KILL_TARGET]
+		var ready: bool = QuestSystem.is_stage_ready()
 		_quest_text.text = "  ◆  [1/3] Зачистка данжа\n\n  Уничтожь %d монстров.\n  Прогресс: %s\n  Награда: %d золотых\n\n%s" % [
-			PlayerData.QUEST_KILL_TARGET, progress, PlayerData.QUEST_REWARD_1,
+			QuestSystem.KILL_TARGET, progress, QuestSystem.REWARD_STAGE_1,
 			"  → Вернись к Старейшине!" if ready else ""]
 		return
 
 	if stage == 2:
 		var status: String = "  Печать: Не найдена" if not PlayerData.quest_has_seal else "  Печать: ✓ Найдена!"
 		_quest_text.text = "  ◆  [2/3] Знак элитного стража\n\n  Найди элитного врага (фиолетовый),\n  убей его и подбери Печать.\n  Награда: %d золотых\n\n%s%s" % [
-			PlayerData.QUEST_REWARD_2, status,
+			QuestSystem.REWARD_STAGE_2, status,
 			"\n\n  → Вернись к Старейшине!" if PlayerData.quest_has_seal else ""]
 		return
 
 	if stage == 3:
 		var status: String = "  Страж: Ещё жив" if not PlayerData.quest_boss_killed else "  Страж: ✓ Повержен!"
 		_quest_text.text = "  ◆  [3/3] Страж Данжа\n\n  Найди и убей главного босса данжа.\n  Награда: %d золотых\n\n%s%s" % [
-			PlayerData.QUEST_REWARD_3, status,
+			QuestSystem.REWARD_STAGE_3, status,
 			"\n\n  → Вернись к Старейшине!" if PlayerData.quest_boss_killed else ""]
 		return
 
@@ -994,8 +1106,8 @@ func _on_bag_sell() -> void:
 	var bag := inv.get_bag()
 	if _selected_bag_idx >= bag.size():
 		return
-	var gold := inv.sell_item_from_bag(bag[_selected_bag_idx])
-	PlayerData.gold += gold
+	# sell_item_from_bag уже вызывает PlayerData.add_gold() — не дублируем
+	inv.sell_item_from_bag(bag[_selected_bag_idx])
 	_refresh_bag()
 
 

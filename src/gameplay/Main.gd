@@ -126,11 +126,11 @@ func _wire_enemy(enemy: Node, combat: CombatComponent) -> void:
 		enemy_hp.damaged.connect(func(amt): _spawn_dmg(e.global_position, amt, false))
 		enemy_hp.damaged.connect(func(_amt): _audio_call("play_hit"))
 		enemy_hp.died.connect(func(): _audio_call("play_enemy_die"))
-		enemy_hp.died.connect(func(): PlayerData.notify_enemy_killed())
+		enemy_hp.died.connect(func(): QuestSystem.notify_enemy_killed())
 
 
 func _on_boss_died(_xp: int, data: EnemyData) -> void:
-	PlayerData.notify_boss_killed()
+	QuestSystem.notify_boss_killed()
 	if _win_screen != null:
 		_win_screen.show_win(data)
 

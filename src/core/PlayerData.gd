@@ -60,6 +60,7 @@ var potions: int:
 
 ## Текущая стадия цепочки квестов.
 ## 0=не начат 1=убей 5 врагов 2=принеси печать элиты 3=убей босса 4=завершён
+## Логика квестов — в QuestSystem (Autoload). Только данные хранятся здесь.
 var quest_stage: int = 0
 
 ## Убийства в рамках стадии 1.
@@ -68,11 +69,6 @@ var quest_kills: int = 0
 var quest_has_seal: bool = false
 ## Босс убит (стадия 3).
 var quest_boss_killed: bool = false
-
-const QUEST_KILL_TARGET: int = 5
-const QUEST_REWARD_1: int = 50
-const QUEST_REWARD_2: int = 100
-const QUEST_REWARD_3: int = 300
 
 # ---------------------------------------------------------------------------
 # Флаг воскрешения
@@ -146,42 +142,5 @@ func use_potion(slot: int = 0) -> bool:
 	return true
 
 
-## Сообщить об убийстве врага (любого).
-func notify_enemy_killed() -> void:
-	if quest_stage == 1:
-		quest_kills = mini(quest_kills + 1, QUEST_KILL_TARGET)
-
-
-## Сообщить об убийстве босса.
-func notify_boss_killed() -> void:
-	if quest_stage == 3:
-		quest_boss_killed = true
-
-
-## Игрок подобрал Печать Стражника.
-func notify_seal_picked() -> void:
-	if quest_stage == 2:
-		quest_has_seal = true
-
-
-## Готова ли текущая стадия к сдаче Старейшине?
-func is_stage_ready() -> bool:
-	match quest_stage:
-		1: return quest_kills >= QUEST_KILL_TARGET
-		2: return quest_has_seal
-		3: return quest_boss_killed
-	return false
-
-
-## Сдать текущую стадию. Возвращает полученное золото (0 — условия не выполнены).
-func complete_stage() -> int:
-	if not is_stage_ready():
-		return 0
-	var reward: int = 0
-	match quest_stage:
-		1: reward = QUEST_REWARD_1
-		2: reward = QUEST_REWARD_2
-		3: reward = QUEST_REWARD_3
-	quest_stage += 1
-	add_gold(reward)
-	return reward
+# Квестовые методы перенесены в QuestSystem (Autoload — src/core/QuestSystem.gd).
+# Используй QuestSystem.notify_enemy_killed(), QuestSystem.complete_stage() и т.д.

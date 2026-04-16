@@ -20,7 +20,7 @@ func interact() -> void:
 
 func _build_tree() -> Dictionary:
 	var c := Color(0.7, 0.5, 0.8)
-	var stage: int = PlayerData.quest_stage
+	var stage: int = QuestSystem.get_stage()
 
 	# Цепочка завершена
 	if stage == 4:
@@ -29,10 +29,10 @@ func _build_tree() -> Dictionary:
 			"choices": [{"label": "Прощайте", "next": ""}]}}
 
 	# Стадия 3 — сдать: босс убит
-	if stage == 3 and PlayerData.quest_boss_killed:
+	if stage == 3 and PlayerData.quest_boss_killed:  # данные читаем из PlayerData напрямую
 		return {
 			"start": {"speaker": "Старейшина", "portrait_color": c,
-				"text": "Страж повержен! Ты сделал невозможное. Прими последнюю награду — %d золотых!" % PlayerData.QUEST_REWARD_3,
+				"text": "Страж повержен! Ты сделал невозможное. Прими последнюю награду — %d золотых!" % QuestSystem.REWARD_STAGE_3,
 				"choices": [{"label": "Принять награду", "next": "reward3"}, {"label": "Позже", "next": ""}]},
 			"reward3": {"speaker": "Старейшина", "portrait_color": c,
 				"text": "Да хранят тебя боги. Легенды сохранят твоё имя!",
@@ -45,10 +45,10 @@ func _build_tree() -> Dictionary:
 			"choices": [{"label": "Понял, иду", "next": ""}]}}
 
 	# Стадия 2 — сдать: печать подобрана
-	if stage == 2 and PlayerData.quest_has_seal:
+	if stage == 2 and PlayerData.quest_has_seal:  # данные читаем из PlayerData напрямую
 		return {
 			"start": {"speaker": "Старейшина", "portrait_color": c,
-				"text": "Ты принёс Печать! Это значит, что элитный страж мёртв. Отлично. Держи %d золотых — и иди за главным: убей Стража Данжа!" % PlayerData.QUEST_REWARD_2,
+				"text": "Ты принёс Печать! Это значит, что элитный страж мёртв. Отлично. Держи %d золотых — и иди за главным: убей Стража Данжа!" % QuestSystem.REWARD_STAGE_2,
 				"choices": [{"label": "Принять награду", "next": "reward2"}, {"label": "Позже", "next": ""}]},
 			"reward2": {"speaker": "Старейшина", "portrait_color": c,
 				"text": "Страж Данжа — в самой дальней комнате. Победи его, и деревня будет спасена!",
@@ -61,10 +61,10 @@ func _build_tree() -> Dictionary:
 			"choices": [{"label": "Понял", "next": ""}]}}
 
 	# Стадия 1 — сдать: 5 врагов убито
-	if stage == 1 and PlayerData.quest_kills >= PlayerData.QUEST_KILL_TARGET:
+	if stage == 1 and QuestSystem.is_stage_ready():
 		return {
 			"start": {"speaker": "Старейшина", "portrait_color": c,
-				"text": "Пятеро повержены! Ты доказал свою силу. Прими %d золотых — и продолжай. Теперь мне нужен Знак элитного стража." % PlayerData.QUEST_REWARD_1,
+				"text": "Пятеро повержены! Ты доказал свою силу. Прими %d золотых — и продолжай. Теперь мне нужен Знак элитного стража." % QuestSystem.REWARD_STAGE_1,
 				"choices": [{"label": "Принять награду", "next": "reward1"}, {"label": "Позже", "next": ""}]},
 			"reward1": {"speaker": "Старейшина", "portrait_color": c,
 				"text": "Найди в данже элитного стража — он фиолетового цвета. Убей его и принеси мне его Печать.",
@@ -73,7 +73,7 @@ func _build_tree() -> Dictionary:
 	# Стадия 1 — в процессе
 	if stage == 1:
 		return {"start": {"speaker": "Старейшина", "portrait_color": c,
-			"text": "Как продвигаются дела? Убито %d из %d монстров. Возвращайся, когда выполнишь." % [PlayerData.quest_kills, PlayerData.QUEST_KILL_TARGET],
+			"text": "Как продвигаются дела? Убито %d из %d монстров. Возвращайся, когда выполнишь." % [QuestSystem.get_kill_count(), QuestSystem.KILL_TARGET],
 			"choices": [{"label": "Иду дальше", "next": ""}]}}
 
 	# Стадия 0 — не начат
@@ -85,7 +85,7 @@ func _build_tree() -> Dictionary:
 			"text": "Для начала — убей пятерых тварей в данже. Это докажет, что ты способен нам помочь. Согласен?",
 			"choices": [{"label": "Принять задание", "next": "accept"}, {"label": "Нет, спасибо", "next": ""}]},
 		"accept": {"speaker": "Старейшина", "portrait_color": c,
-			"text": "Отлично! Данж — к востоку от деревни. Убей пятерых монстров и возвращайся. За это получишь %d золотых." % PlayerData.QUEST_REWARD_1,
+			"text": "Отлично! Данж — к востоку от деревни. Убей пятерых монстров и возвращайся. За это получишь %d золотых." % QuestSystem.REWARD_STAGE_1,
 			"next": "__accept_quest__"}}
 
 
@@ -109,6 +109,6 @@ func _on_dialogue_ended() -> void:
 	var dlg := nodes[0] as DialogueScreen
 	match dlg._current_node:
 		"__accept_quest__":
-			PlayerData.quest_stage = 1
+			QuestSystem.accept_quest()
 		"__complete_stage__":
-			PlayerData.complete_stage()
+			QuestSystem.complete_stage()
