@@ -77,8 +77,7 @@ func save() -> bool:
 	var tmp_path := SAVE_PATH + ".tmp"
 	var file := FileAccess.open(tmp_path, FileAccess.WRITE)
 	if file == null:
-		var err_code: int = FileAccess.get_open_error() if FileAccess.has_method("get_open_error") else -1
-		var reason := "Не удалось открыть %s для записи (err=%d)" % [tmp_path, err_code]
+		var reason := "Не удалось открыть для записи: %s" % tmp_path
 		push_error("SaveSystem: " + reason)
 		save_failed.emit(reason)
 		return false
