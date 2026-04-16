@@ -418,8 +418,8 @@ func _build_bag_view(parent: Control) -> Control:
 	view.add_child(header_row)
 
 	var lbl := Label.new()
-	lbl.text = "  ИНВЕНТАРЬ"
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	lbl.text = "  ИНВЕНТАРЬ  [NEW]"
+	lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
 	lbl.add_theme_font_size_override("font_size", 14)
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_row.add_child(lbl)
