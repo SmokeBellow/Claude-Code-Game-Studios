@@ -24,6 +24,7 @@ AudioManager="*uid://vc0qoqwac47t"
 WorldState="*res://src/core/WorldState.gd"
 SaveSystem="*res://src/core/SaveSystem.gd"
 QuestSystem="*res://src/core/QuestSystem.gd"
+SettingsManager="*res://src/core/SettingsManager.gd"
 
 [display]
 

@@ -874,7 +874,7 @@ func _refresh_skill_tree() -> void:
 
 	# Пересобираем дерево
 	for child in _skill_tree_container.get_children():
-		child.queue_free()
+		child.free()
 
 	# Общая ветка — всегда
 	_build_branch_ui("general")
@@ -1003,7 +1003,7 @@ func _on_spend_skill_point(branch_key: String) -> void:
 	if st == null:
 		return
 	if st.spend_point(branch_key):
-		call_deferred("_refresh_skill_tree")
+		_refresh_skill_tree.call_deferred()
 
 
 func _get_skill_tree() -> SkillTree:
