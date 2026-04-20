@@ -30,12 +30,12 @@ func enter_floor(floor_num: int) -> void:
 		_current_scene.queue_free()
 		_current_scene = null
 
-	# Генерируем планировку
+	# Загружаем статичную планировку
 	var layout: FloorGenerator.FloorLayout
 	match floor_num:
-		1: layout = FloorGenerator.generate_floor_1()
-		2: layout = FloorGenerator.generate_floor_2()
-		3: layout = FloorGenerator.generate_floor_3()
+		1: layout = StaticFloorData.floor_1()
+		2: layout = StaticFloorData.floor_2()
+		3: layout = StaticFloorData.floor_3()
 		_:
 			push_error("FloorManager: неизвестный этаж %d" % floor_num)
 			return
