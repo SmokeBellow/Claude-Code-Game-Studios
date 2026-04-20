@@ -8,7 +8,7 @@ extends Node
 const _SAVE_PATH := "user://settings.cfg"
 const _SECTION   := "display"
 
-var _fullscreen: bool = false
+var _fullscreen: bool = true   # полноэкранный по умолчанию; F11 — переключить
 
 
 func _ready() -> void:
@@ -38,7 +38,7 @@ func _load() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(_SAVE_PATH) != OK:
 		return
-	_fullscreen = bool(cfg.get_value(_SECTION, "fullscreen", false))
+	_fullscreen = bool(cfg.get_value(_SECTION, "fullscreen", _fullscreen))
 
 
 func _save() -> void:

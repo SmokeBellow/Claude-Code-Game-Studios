@@ -29,6 +29,7 @@ var _floor_index: int = 1
 var _guardian_alive: int = 0
 var _boss_gate: BossGate = null
 var _boss_room_center: Vector2 = Vector2.ZERO
+var _canvas_mod: CanvasModulate = null   # читкод F3 — скрыть затемнение
 
 
 ## Вызывается FloorManager. Строит тайлмап, коллизии, навигацию.
@@ -151,6 +152,7 @@ func _build_lighting() -> void:
 	var mod := CanvasModulate.new()
 	mod.color = Color(0.25, 0.20, 0.35)   # тёмная атмосфера, но видимая без факелов
 	add_child(mod)
+	_canvas_mod = mod
 	var player := get_tree().get_first_node_in_group("player")
 	if player != null:
 		var light := player.get_node_or_null("TorchLight") as PointLight2D
@@ -373,3 +375,15 @@ func _place_torch(world_pos: Vector2) -> void:
 	var torch := WallTorch.new()
 	torch.position = snapped
 	add_child(torch)
+
+
+# ---------------------------------------------------------------------------
+# Читкод: F3 — отключить/включить затемнение
+# ---------------------------------------------------------------------------
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F3:
+			if _canvas_mod != null:
+				_canvas_mod.visible = not _canvas_mod.visible
+			get_viewport().set_input_as_handled()
