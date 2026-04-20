@@ -67,16 +67,21 @@ func _build_tilemap() -> void:
 
 	var ts := TileSet.new()
 	ts.tile_size = Vector2i(TILE, TILE)
-	var img := Image.create(TILE * 2, TILE, false, Image.FORMAT_RGBA8)
-	img.fill_rect(Rect2i(0,    0, TILE, TILE), floor_color)
-	img.fill_rect(Rect2i(TILE, 0, TILE, TILE), WALL_COLOR)
-	var tex := ImageTexture.create_from_image(img)
-	var src := TileSetAtlasSource.new()
-	src.texture = tex
-	src.texture_region_size = Vector2i(TILE, TILE)
-	src.create_tile(Vector2i(0, 0))
-	src.create_tile(Vector2i(1, 0))
-	var src_id := ts.add_source(src)
+
+	# --- Тайл пола (solid color) ---
+	var floor_src := TileSetAtlasSource.new()
+	floor_src.texture = _make_solid_tex(floor_color)
+	floor_src.texture_region_size = Vector2i(TILE, TILE)
+	floor_src.create_tile(Vector2i(0, 0))
+	var floor_id := ts.add_source(floor_src)
+
+	# --- Тайл стены (PNG если есть, иначе цвет) ---
+	var wall_src := TileSetAtlasSource.new()
+	var wall_tex := _load_scaled_tex("res://assets/art/environment/wall_stone.png")
+	wall_src.texture = wall_tex if wall_tex != null else _make_solid_tex(WALL_COLOR)
+	wall_src.texture_region_size = Vector2i(TILE, TILE)
+	wall_src.create_tile(Vector2i(0, 0))
+	var wall_id := ts.add_source(wall_src)
 
 	var tml := TileMapLayer.new()
 	tml.name = "TileMapLayer"
@@ -87,9 +92,28 @@ func _build_tilemap() -> void:
 	for x in range(_layout.width):
 		for y in range(_layout.height):
 			if _layout.get_tile(x, y) == T_FLOOR:
-				tml.set_cell(Vector2i(x, y), src_id, Vector2i(0, 0))
+				tml.set_cell(Vector2i(x, y), floor_id, Vector2i(0, 0))
 			elif _has_floor_neighbor(x, y):
-				tml.set_cell(Vector2i(x, y), src_id, Vector2i(1, 0))
+				tml.set_cell(Vector2i(x, y), wall_id, Vector2i(0, 0))
+
+
+func _make_solid_tex(color: Color) -> ImageTexture:
+	var img := Image.create(TILE, TILE, false, Image.FORMAT_RGBA8)
+	img.fill(color)
+	return ImageTexture.create_from_image(img)
+
+
+func _load_scaled_tex(path: String) -> ImageTexture:
+	if not ResourceLoader.exists(path):
+		return null
+	var res: Texture2D = load(path)
+	if res == null:
+		return null
+	var img: Image = res.get_image()
+	if img == null:
+		return null
+	img.resize(TILE, TILE, Image.INTERPOLATE_LANCZOS)
+	return ImageTexture.create_from_image(img)
 
 
 func _has_floor_neighbor(x: int, y: int) -> bool:
@@ -125,7 +149,7 @@ func _build_lighting() -> void:
 	if _floor_index == 3:
 		return
 	var mod := CanvasModulate.new()
-	mod.color = Color(0.03, 0.02, 0.05)
+	mod.color = Color(0.25, 0.20, 0.35)   # тёмная атмосфера, но видимая без факелов
 	add_child(mod)
 	var player := get_tree().get_first_node_in_group("player")
 	if player != null:

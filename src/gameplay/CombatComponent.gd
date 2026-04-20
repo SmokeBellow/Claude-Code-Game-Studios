@@ -244,6 +244,8 @@ func _apply_hitbox(is_counter: bool, radius: float, half_arc_deg: float) -> void
 		return
 	var facing: Vector2 = player.facing_direction
 	var origin: Vector2 = player.global_position
+	# Визуальная вспышка дуги атаки
+	HitboxFlash.spawn(get_tree(), origin, facing, radius, half_arc_deg)
 	var half_arc: float = deg_to_rad(half_arc_deg)
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not enemy is Node2D:

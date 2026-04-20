@@ -49,30 +49,50 @@ func _build_tilemap() -> void:
 	_tilemap = TileMapLayer.new()
 	add_child(_tilemap)
 
-	# Используем те же TileSet что в Room (через ресурс)
-	# Если TileSet ещё не загружен — создаём программно
 	var ts := TileSet.new()
 	ts.tile_size = Vector2i(TILE, TILE)
-	var src := TileSetAtlasSource.new()
-	var img := Image.create(TILE * 2, TILE, false, Image.FORMAT_RGBA8)
-	# Пол — светло-серый
-	img.fill_rect(Rect2i(0, 0, TILE, TILE), Color(0.45, 0.42, 0.38))
-	# Стена — тёмно-серый
-	img.fill_rect(Rect2i(TILE, 0, TILE, TILE), Color(0.22, 0.20, 0.18))
-	var tex := ImageTexture.create_from_image(img)
-	src.texture = tex
-	src.texture_region_size = Vector2i(TILE, TILE)
-	src.create_tile(Vector2i(0, 0))
-	src.create_tile(Vector2i(1, 0))
-	var src_id: int = ts.add_source(src)
+
+	# --- Трава (пол) — загружаем PNG или fallback solid color ---
+	var floor_src := TileSetAtlasSource.new()
+	var grass_tex := _load_scaled_tex("res://assets/art/environment/grass.png")
+	floor_src.texture = grass_tex if grass_tex != null else _make_solid_tex(Color(0.45, 0.52, 0.30))
+	floor_src.texture_region_size = Vector2i(TILE, TILE)
+	floor_src.create_tile(Vector2i(0, 0))
+	var floor_id: int = ts.add_source(floor_src)
+
+	# --- Стена (периметр) — solid dark stone ---
+	var wall_src := TileSetAtlasSource.new()
+	wall_src.texture = _make_solid_tex(Color(0.22, 0.20, 0.18))
+	wall_src.texture_region_size = Vector2i(TILE, TILE)
+	wall_src.create_tile(Vector2i(0, 0))
+	var wall_id: int = ts.add_source(wall_src)
+
 	_tilemap.tile_set = ts
 
-	# Заполняем: стены по периметру, пол внутри
+	# Заполняем: стены по периметру, трава внутри
 	for r in range(ROWS):
 		for c in range(COLS):
 			var is_wall: bool = (c == 0 or c == COLS - 1 or r == 0 or r == ROWS - 1)
-			var atlas: Vector2i = ATLAS_WALL if is_wall else ATLAS_FLOOR
-			_tilemap.set_cell(Vector2i(c, r), src_id, atlas)
+			_tilemap.set_cell(Vector2i(c, r), wall_id if is_wall else floor_id, Vector2i(0, 0))
+
+
+func _make_solid_tex(color: Color) -> ImageTexture:
+	var img := Image.create(TILE, TILE, false, Image.FORMAT_RGBA8)
+	img.fill(color)
+	return ImageTexture.create_from_image(img)
+
+
+func _load_scaled_tex(path: String) -> ImageTexture:
+	if not ResourceLoader.exists(path):
+		return null
+	var res: Texture2D = load(path)
+	if res == null:
+		return null
+	var img: Image = res.get_image()
+	if img == null:
+		return null
+	img.resize(TILE, TILE, Image.INTERPOLATE_LANCZOS)
+	return ImageTexture.create_from_image(img)
 
 
 func _build_collision_walls() -> void:
@@ -118,11 +138,19 @@ func _make_building(pos: Vector2, size: Vector2, color: Color, label: String) ->
 	var sb := StaticBody2D.new()
 	sb.position = pos
 
-	var vis := ColorRect.new()
-	vis.color = color
-	vis.size = size
-	vis.position = -size * 0.5
-	sb.add_child(vis)
+	# Спрайт здания — PNG или fallback ColorRect
+	var bld_tex := _load_building_tex(label)
+	if bld_tex != null:
+		var spr := Sprite2D.new()
+		spr.texture = bld_tex
+		spr.scale = size / Vector2(bld_tex.get_width(), bld_tex.get_height())
+		sb.add_child(spr)
+	else:
+		var vis := ColorRect.new()
+		vis.color = color
+		vis.size = size
+		vis.position = -size * 0.5
+		sb.add_child(vis)
 
 	var cs := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
@@ -140,6 +168,20 @@ func _make_building(pos: Vector2, size: Vector2, color: Color, label: String) ->
 	sb.add_child(lbl)
 
 	add_child(sb)
+
+
+func _load_building_tex(label: String) -> Texture2D:
+	var path: String
+	match label:
+		"Таверна", "Мэрия":
+			path = "res://assets/art/environment/building_large.png"
+		"Лавка", "Кузница", "Склад":
+			path = "res://assets/art/environment/building_medium.png"
+		_:  # Дом
+			path = "res://assets/art/environment/building_house.png"
+	if ResourceLoader.exists(path):
+		return load(path)
+	return null
 
 
 # ---------------------------------------------------------------------------

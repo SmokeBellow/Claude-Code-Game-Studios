@@ -58,6 +58,15 @@ func _ready() -> void:
 	add_to_group("player")
 	if health != null:
 		health.died.connect(on_died)
+	# Спрайт игрока — загружаем PNG вместо PlaceholderTexture2D
+	var sprite := get_node_or_null("Sprite2D") as Sprite2D
+	if sprite != null:
+		var tex_path := "res://assets/art/characters/player.png"
+		if ResourceLoader.exists(tex_path):
+			var ptex: Texture2D = load(tex_path)
+			sprite.texture = ptex
+			# Масштабируем так, чтобы спрайт занимал ~32×40 пикселей в мире
+			sprite.scale = Vector2(32.0 / ptex.get_width(), 40.0 / ptex.get_height())
 	var _light := PointLight2D.new()
 	_light.name = "TorchLight"
 	_light.texture = WallTorch.make_radial_texture(128)
