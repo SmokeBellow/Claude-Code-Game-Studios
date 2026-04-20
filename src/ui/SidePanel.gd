@@ -175,6 +175,7 @@ func _build_panel() -> void:
 	_panel.offset_right  =  PANEL_W * 0.5
 	_panel.offset_top    = -PANEL_H * 0.5
 	_panel.offset_bottom =  PANEL_H * 0.5
+	_panel.process_mode  = Node.PROCESS_MODE_ALWAYS
 	add_child(_panel)
 
 	var vbox := VBoxContainer.new()
@@ -670,6 +671,7 @@ func _build_skills_view(parent: Control) -> Control:
 
 	_skill_tree_container = VBoxContainer.new()
 	_skill_tree_container.add_theme_constant_override("separation", 2)
+	_skill_tree_container.process_mode = Node.PROCESS_MODE_ALWAYS
 	view.add_child(_skill_tree_container)
 
 	return view
@@ -933,6 +935,7 @@ func _build_branch_ui(branch_key: String) -> void:
 		buy_btn.text = "+ Купить"
 		buy_btn.add_theme_font_size_override("font_size", 11)
 		buy_btn.custom_minimum_size = Vector2(78, 22)
+		buy_btn.process_mode = Node.PROCESS_MODE_ALWAYS
 		UIStyle.apply_btn(buy_btn, Color(0.25, 0.55, 0.25))
 		buy_btn.pressed.connect(_on_spend_skill_point.bind(branch_key))
 		hdr.add_child(buy_btn)
