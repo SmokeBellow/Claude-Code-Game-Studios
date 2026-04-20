@@ -90,9 +90,6 @@ var _tooltip_sell_lbl: Label
 # Задания
 var _quest_text: Label
 
-# Навыки — классовые слоты (хранятся для обновления)
-var _skill_rows: Array[HBoxContainer] = []
-
 # Навыки — дерево навыков
 var _skill_pts_label: Label = null
 var _skill_tree_container: VBoxContainer = null
@@ -653,52 +650,6 @@ func _build_skills_view(parent: Control) -> Control:
 
 	view.add_child(UIStyle.separator())
 
-	# Классовые навыки (3 слота)
-	var class_lbl := Label.new()
-	class_lbl.text = "  Классовые навыки"
-	class_lbl.add_theme_color_override("font_color", Color(0.55, 0.55, 0.55))
-	class_lbl.add_theme_font_size_override("font_size", 13)
-	view.add_child(class_lbl)
-
-	_skill_rows.clear()
-	const KEY_LABELS: Array[String] = ["[Q]", "[E]", "[F]"]
-	for i: int in range(3):
-		var slot_row := HBoxContainer.new()
-		slot_row.add_theme_constant_override("separation", 10)
-		view.add_child(slot_row)
-		_skill_rows.append(slot_row)
-
-		var icon := ColorRect.new()
-		icon.color = Color(0.2, 0.2, 0.25)
-		icon.custom_minimum_size = Vector2(44, 44)
-		slot_row.add_child(icon)
-
-		var key_lbl := Label.new()
-		key_lbl.text = KEY_LABELS[i]
-		key_lbl.add_theme_font_size_override("font_size", 11)
-		key_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		key_lbl.custom_minimum_size.x = 28
-		icon.add_child(key_lbl)
-		key_lbl.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-
-		var info_col := VBoxContainer.new()
-		info_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		slot_row.add_child(info_col)
-
-		var name_lbl := Label.new()
-		name_lbl.text = "— Откроется позже"
-		name_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-		name_lbl.add_theme_font_size_override("font_size", 13)
-		info_col.add_child(name_lbl)
-
-		var cd_lbl := Label.new()
-		cd_lbl.text = ""
-		cd_lbl.add_theme_font_size_override("font_size", 11)
-		cd_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		info_col.add_child(cd_lbl)
-
-	view.add_child(UIStyle.separator())
-
 	# Раздел: дерево навыков
 	var tree_hdr := HBoxContainer.new()
 	tree_hdr.add_theme_constant_override("separation", 8)
@@ -912,70 +863,6 @@ func _make_bag_slot_empty() -> Button:
 
 
 func _refresh_skills() -> void:
-	if _skill_rows.is_empty():
-		return
-
-	const WARRIOR_NAMES: Array[String] = ["Оглушение", "Мощный удар", "Укрепление"]
-	const MAGE_NAMES:    Array[String] = ["Огненный шар", "Ледяная стрела", "Магический щит"]
-	const ROGUE_NAMES:   Array[String] = ["Дымовая бомба", "Веер клинков", "Парирование"]
-
-	var pc: int = PlayerData.player_class
-
-	var ability_names: Array[String]
-	match pc:
-		PlayerData.CLASS_WARRIOR: ability_names = WARRIOR_NAMES
-		PlayerData.CLASS_MAGE:    ability_names = MAGE_NAMES
-		PlayerData.CLASS_ROGUE:   ability_names = ROGUE_NAMES
-		_: ability_names = ["", "", ""]
-
-	# Ищем ClassAbilitySystem у игрока
-	var cas: ClassAbilitySystem = null
-	for p: Node in get_tree().get_nodes_in_group("player"):
-		cas = p.get_node_or_null("ClassAbilitySystem") as ClassAbilitySystem
-		if cas != null:
-			break
-
-	for i: int in range(3):
-		var row: HBoxContainer = _skill_rows[i]
-		var icon: ColorRect = row.get_child(0) as ColorRect
-		var info_col: VBoxContainer = row.get_child(1) as VBoxContainer
-		var name_lbl: Label = info_col.get_child(0) as Label
-		var cd_lbl: Label   = info_col.get_child(1) as Label
-
-		var unlocked: bool = PlayerData.ability_unlocked[i]
-
-		if pc == PlayerData.CLASS_NONE or ability_names[i].is_empty():
-			icon.color = Color(0.2, 0.2, 0.25)
-			name_lbl.text = "— Откроется позже"
-			name_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-			cd_lbl.text = ""
-			continue
-
-		if not unlocked:
-			icon.color = Color(0.2, 0.2, 0.25)
-			var unlock_lvl: int = (i + 1) * 3   # 3 / 6 / 9
-			name_lbl.text = ability_names[i]
-			name_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
-			cd_lbl.text = "Откроется на %d ур." % unlock_lvl
-			continue
-
-		# Умение разблокировано
-		icon.color = Color(0.15, 0.35, 0.15)
-		name_lbl.text = ability_names[i]
-		name_lbl.add_theme_color_override("font_color", Color(0.7, 1.0, 0.7))
-
-		if cas != null:
-			var remaining: float = cas.get_cooldown(i)
-			var max_cd: float    = cas.get_max_cooldown(i)
-			if remaining > 0.0:
-				cd_lbl.text = "Кд: %.1f / %.0f с" % [remaining, max_cd]
-				cd_lbl.add_theme_color_override("font_color", Color(0.9, 0.5, 0.3))
-			else:
-				cd_lbl.text = "Готово  (кд %.0f с)" % max_cd
-				cd_lbl.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4))
-		else:
-			cd_lbl.text = ""
-
 	_refresh_skill_tree()
 
 

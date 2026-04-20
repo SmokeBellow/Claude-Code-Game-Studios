@@ -180,7 +180,6 @@ func _serialize_player() -> Dictionary:
 		"arc":             PlayerData.saved_arc,
 		"lck":             PlayerData.saved_lck,
 		"attr_points":     PlayerData.saved_attr_points,
-		"ability_unlocked": PlayerData.ability_unlocked,
 		"potion_slots":    PlayerData.potion_slots,
 		"hero_name":       PlayerData.hero_name,
 		"quest_stage":     PlayerData.quest_stage,
@@ -240,13 +239,6 @@ func _deserialize_player(p: Dictionary) -> void:
 	PlayerData.quest_kills         = int(p.get("quest_kills",     0))
 	PlayerData.quest_has_seal      = bool(p.get("quest_has_seal", false))
 	PlayerData.quest_boss_killed   = bool(p.get("quest_boss_killed", false))
-
-	var ab: Array = p.get("ability_unlocked", [false, false, false])
-	PlayerData.ability_unlocked = [
-		bool(ab[0]) if ab.size() > 0 else false,
-		bool(ab[1]) if ab.size() > 1 else false,
-		bool(ab[2]) if ab.size() > 2 else false,
-	]
 
 	var ps: Array = p.get("potion_slots", [0, 0, 0, 0])
 	PlayerData.potion_slots = [
@@ -325,7 +317,6 @@ func _reset_all() -> void:
 	PlayerData.saved_arc           = 5.0
 	PlayerData.saved_lck           = 5.0
 	PlayerData.saved_attr_points   = 0
-	PlayerData.ability_unlocked    = [false, false, false]
 	PlayerData.potion_slots        = [0, 0, 0, 0]
 	PlayerData.quest_stage         = 0
 	PlayerData.quest_kills         = 0

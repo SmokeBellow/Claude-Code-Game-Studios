@@ -47,9 +47,6 @@ var facing_direction: Vector2 = Vector2.RIGHT
 ## Флаг блокировки движения (устанавливается Боевой системой).
 var is_movement_locked: bool = false
 
-## Persistent-индикатор Мощного удара (пульсирующее кольцо). null если неактивен.
-var _heavy_indicator: Node2D = null
-
 # ---------------------------------------------------------------------------
 # Lifecycle
 # ---------------------------------------------------------------------------
@@ -94,9 +91,6 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-	if _heavy_indicator != null and is_instance_valid(_heavy_indicator):
-		_heavy_indicator.queue_redraw()
-
 
 func _unhandled_input(event: InputEvent) -> void:
 	# DEV CHEAT: F2 = +3 уровня
@@ -106,12 +100,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cheat_level_up(3)
 	if event.is_action_pressed("ability_primary"):
 		_activate_dash()
-	if event.is_action_pressed("class_ability_1"):
-		_use_class_ability(0)
-	elif event.is_action_pressed("class_ability_2"):
-		_use_class_ability(1)
-	elif event.is_action_pressed("class_ability_3"):
-		_use_class_ability(2)
 	if event.is_action_pressed("use_potion_1"):
 		use_potion(0)
 	elif event.is_action_pressed("use_potion_2"):
@@ -159,21 +147,6 @@ func dash_cooldown_progress() -> float:
 	return 1.0 - clampf(_dash_cooldown / DASH_COOLDOWN, 0.0, 1.0)
 
 
-## Показывает пульсирующее красное кольцо — индикатор активного Мощного удара.
-func show_heavy_indicator() -> void:
-	if _heavy_indicator != null and is_instance_valid(_heavy_indicator):
-		_heavy_indicator.queue_free()
-	_heavy_indicator = _HeavyIndicator.new()
-	add_child(_heavy_indicator)
-
-
-## Скрывает индикатор Мощного удара.
-func hide_heavy_indicator() -> void:
-	if _heavy_indicator != null and is_instance_valid(_heavy_indicator):
-		_heavy_indicator.queue_free()
-	_heavy_indicator = null
-
-
 ## DEV: добавить [param levels] уровней (работает только в debug-сборке).
 func _cheat_level_up(levels: int) -> void:
 	var lxp_nodes := get_tree().get_nodes_in_group("level_xp")
@@ -186,13 +159,6 @@ func _cheat_level_up(levels: int) -> void:
 		var needed: int = lxp.xp_to_next_level(lxp.current_level)
 		lxp.add_xp(needed - lxp.current_xp + 1)
 	print("CHEAT: level → %d" % lxp.current_level)
-
-
-## Передаёт нажатие классового умения в ClassAbilitySystem (если он добавлен в дерево).
-func _use_class_ability(slot: int) -> void:
-	var cas := get_node_or_null("ClassAbilitySystem") as ClassAbilitySystem
-	if cas != null:
-		cas.use_ability(slot)
 
 
 
@@ -253,20 +219,3 @@ func _update_facing() -> void:
 	var mouse_offset: Vector2 = get_global_mouse_position() - global_position
 	if mouse_offset.length_squared() > MIN_FACING_DISTANCE_SQ:
 		facing_direction = mouse_offset.normalized()
-
-
-# ---------------------------------------------------------------------------
-# Вложенный класс: пульсирующий индикатор Мощного удара
-# ---------------------------------------------------------------------------
-
-class _HeavyIndicator extends Node2D:
-	var _time: float = 0.0
-
-	func _process(delta: float) -> void:
-		_time += delta
-		queue_redraw()
-
-	func _draw() -> void:
-		var alpha: float = 0.45 + 0.45 * sin(_time * 7.0)
-		draw_arc(Vector2.ZERO, 28.0, 0.0, TAU, 40, Color(1.0, 0.15, 0.05, alpha), 3.5)
-		draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 40, Color(1.0, 0.5, 0.1, alpha * 0.5), 1.5)

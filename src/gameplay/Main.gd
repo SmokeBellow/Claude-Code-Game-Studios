@@ -49,20 +49,12 @@ func _ready() -> void:
 	for player in get_tree().get_nodes_in_group("player"):
 		combat = player.get_node_or_null("CombatComponent") as CombatComponent
 
-		# Добавляем ClassAbilitySystem как дочерний к игроку.
-		var stats := player.get_node_or_null("StatsComponent") as StatsComponent
-		var cas := ClassAbilitySystem.new()
-		cas.name = "ClassAbilitySystem"
-		cas.player = player as CharacterBody2D
-		cas.stats  = stats
-		cas.health = player.get_node_or_null("HealthComponent") as HealthComponent
-		player.add_child(cas)
-
 		# Дерево навыков.
+		var stats := player.get_node_or_null("StatsComponent") as StatsComponent
 		var skill_tree := SkillTree.new()
 		skill_tree.name = "SkillTree"
 		player.add_child(skill_tree)
-		skill_tree.setup(stats, cas, level_xp)
+		skill_tree.setup(stats, level_xp)
 		break
 
 	# FloorManager спавнит врагов deferred и сам вызывает wire_enemy().
@@ -87,9 +79,6 @@ func _ready() -> void:
 
 	# Показываем экран прокачки при level up.
 	level_xp.level_up.connect(func(lvl: int, pts: int):
-		# Разблокируем умения на 3/6/9 уровне.
-		PlayerData.unlock_abilities_for_level(lvl)
-
 		# На 3-м уровне — сначала выбор класса, AttributeScreen — после него.
 		if lvl == 3 and PlayerData.player_class == PlayerData.CLASS_NONE \
 				and is_instance_valid(_class_selection):

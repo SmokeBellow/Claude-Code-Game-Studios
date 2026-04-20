@@ -114,17 +114,14 @@ const NODES: Dictionary = {
 # ---------------------------------------------------------------------------
 
 var _stats: StatsComponent = null
-var _cas: Node = null
 
 # ---------------------------------------------------------------------------
 # Публичный API
 # ---------------------------------------------------------------------------
 
-## Инициализирует систему. Вызывается из Main.gd после создания CAS.
-func setup(stats: StatsComponent, cas: Node,
-		level_xp: LevelXPSystem) -> void:
+## Инициализирует систему. Вызывается из Main.gd / Town.gd.
+func setup(stats: StatsComponent, level_xp: LevelXPSystem) -> void:
 	_stats = stats
-	_cas = cas
 	add_to_group("skill_tree")
 	if level_xp != null:
 		level_xp.level_up.connect(_on_level_up)
@@ -149,7 +146,6 @@ func spend_point(branch_key: String) -> bool:
 	PlayerData.skill_points -= 1
 	PlayerData.spent_points[branch_key] = points_in + 1
 	_apply_node_effect(branch_key, points_in)
-	_update_ability_unlocks()
 	node_purchased.emit(branch_key, points_in)
 	skill_points_changed.emit(PlayerData.skill_points)
 	return true
@@ -218,20 +214,3 @@ func _restore_passives() -> void:
 		var points: int = PlayerData.spent_points[branch_key]
 		for i: int in points:
 			_apply_node_effect(branch_key, i)
-	_update_ability_unlocks()
-
-
-## Разблокируем слоты умений на основе максимального числа очков в одной ветке.
-## R (слот 0) = 1+ очко, F (слот 1) = 3+ очка, G (слот 2) = 5+ очков.
-func _update_ability_unlocks() -> void:
-	if PlayerData.player_class == PlayerData.CLASS_NONE:
-		return
-	var branches: Array = CLASS_BRANCHES.get(PlayerData.player_class, [])
-	var max_pts: int = 0
-	for branch_key: String in branches:
-		var p: int = int(PlayerData.spent_points.get(branch_key, 0))
-		if p > max_pts:
-			max_pts = p
-	PlayerData.ability_unlocked[0] = max_pts >= 1
-	PlayerData.ability_unlocked[1] = max_pts >= 3
-	PlayerData.ability_unlocked[2] = max_pts >= 5

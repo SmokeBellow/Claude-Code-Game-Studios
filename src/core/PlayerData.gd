@@ -15,9 +15,6 @@ const CLASS_ROGUE: int   = 3
 ## Выбранный класс. Устанавливается на 3-м уровне.
 var player_class: int = CLASS_NONE
 
-## Разблокированные классовые умения (слоты 0–2, открываются на ур. 3/6/9).
-var ability_unlocked: Array[bool] = [false, false, false]
-
 
 ## Применяет базовые бонусы класса к StatsComponent.
 func apply_class_stats(stats: StatsComponent) -> void:
@@ -28,13 +25,6 @@ func apply_class_stats(stats: StatsComponent) -> void:
 			stats.apply_equipment_bonus(-2.0, 0.0, -3.0, 5.0, 5.0, 0.0)
 		CLASS_ROGUE:
 			stats.apply_equipment_bonus(0.0, 5.0, -2.0, 0.0, 0.0, 3.0)
-
-
-## Разблокирует умения согласно уровню.
-func unlock_abilities_for_level(level: int) -> void:
-	if level >= 3: ability_unlocked[0] = true
-	if level >= 6: ability_unlocked[1] = true
-	if level >= 9: ability_unlocked[2] = true
 
 # ---------------------------------------------------------------------------
 # Валюта

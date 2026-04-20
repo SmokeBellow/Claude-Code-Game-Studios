@@ -48,9 +48,6 @@ signal counter_hit     ## Контрудар нанесён.
 ## Множитель урона контрудара.
 @export var counter_multiplier: float = 2.0
 
-## Одноразовый множитель следующего удара (Heavy Strike Воина). Сбрасывается после применения.
-var pending_damage_mult: float = 1.0
-
 # Параметры снаряда мага
 const _MAGE_PROJECTILE_SPEED: float  = 450.0
 const _MAGE_PROJECTILE_RANGE: float  = 500.0
@@ -277,16 +274,6 @@ func _deal_damage_to(target: Node, is_counter: bool) -> void:
 		if randf() < stats.crit_chance() / 100.0:
 			is_crit = true
 			base_damage *= stats.crit_multiplier()
-
-	# Одноразовый бонус Heavy Strike — применяется к любому удару.
-	if pending_damage_mult != 1.0:
-		base_damage *= pending_damage_mult
-		pending_damage_mult = 1.0
-		if player != null and player.has_method("hide_heavy_indicator"):
-			player.hide_heavy_indicator()
-		var cas := player.get_node_or_null("ClassAbilitySystem") as ClassAbilitySystem if player != null else null
-		if cas != null:
-			cas._heavy_strike_ready = 0.0
 
 	if is_counter:
 		base_damage *= counter_multiplier

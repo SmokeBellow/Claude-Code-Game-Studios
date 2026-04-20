@@ -242,7 +242,7 @@ func _spawn_player() -> void:
 	var skill_tree := SkillTree.new()
 	skill_tree.name = "SkillTree"
 	_player.add_child(skill_tree)
-	skill_tree.setup(stats, null, null)
+	skill_tree.setup(stats, null)
 
 
 func _setup_camera() -> void:
