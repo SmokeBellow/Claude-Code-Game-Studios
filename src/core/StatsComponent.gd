@@ -111,9 +111,9 @@ func effective(raw: float) -> float:
 # Публичный API: производные статы
 # ---------------------------------------------------------------------------
 
-## Макс HP. Формула: [code]60 + 8 * E(END)[/code]. При уровне 1: 100.
+## Макс HP. Формула: [code](60 + 8 * E(END)) * (1 + skill_hp_pct)[/code]. При уровне 1: 100.
 func max_hp() -> float:
-	return 60.0 + 8.0 * effective(total_end())
+	return (60.0 + 8.0 * effective(total_end())) * (1.0 + _skill_hp_pct)
 
 ## Реген HP в секунду. Формула: [code]0.2 * E(END)[/code].
 func hp_regen_per_sec() -> float:
@@ -135,9 +135,9 @@ func attack_speed() -> float:
 func dodge_chance() -> float:
 	return minf(40.0, effective(total_dex()))
 
-## Плоский бонус к физ. урону. Формула: [code]E(STR)[/code].
+## Плоский бонус к физ. урону. Формула: [code]E(STR) * (1 + skill_dmg_pct)[/code].
 func phys_damage_bonus() -> float:
-	return effective(total_str())
+	return effective(total_str()) * (1.0 + _skill_dmg_pct)
 
 ## Макс мана. Формула: [code]30 + 4*E(INT)[/code]. При уровне 1: 50.
 func max_mana() -> float:
@@ -151,9 +151,9 @@ func mana_regen_per_sec() -> float:
 func ability_power() -> float:
 	return 0.83 + 0.034 * effective(total_arc())
 
-## Шанс крита %. Формула: [code]min(50, E(LCK))[/code].
+## Шанс крита %. Формула: [code]min(50, E(LCK) + skill_crit_bonus)[/code].
 func crit_chance() -> float:
-	return minf(50.0, effective(total_lck()))
+	return minf(50.0, effective(total_lck()) + _skill_crit_bonus)
 
 ## Множитель крит-урона. Формула: [code]1.4 + 0.02*E(LCK)[/code]. При уровне 1: 1.5x.
 func crit_multiplier() -> float:
@@ -232,6 +232,70 @@ func remove_equipment_bonus(str_b: float, dex_b: float, end_b: float,
 	_equip_lck -= lck_b
 	stats_changed.emit()
 
+# ---------------------------------------------------------------------------
+# Бонусы от навыков
+# ---------------------------------------------------------------------------
+
+## Суммарный % бонус к макс HP от пассивов (0.10 = +10%).
+var _skill_hp_pct: float = 0.0
+## Суммарный % бонус к физ. урону от пассивов (0.20 = +20%).
+var _skill_dmg_pct: float = 0.0
+## Снижение получаемого урона от пассивов (0.15 = -15%).
+var _skill_dmg_red: float = 0.0
+## Плоский бонус к шансу крита (%).
+var _skill_crit_bonus: float = 0.0
+## Бонус к урону светом (Паладин). Используется CombatComponent.
+var _skill_light_dmg: float = 0.0
+## Триггерные пассивы: id → значение. Читаются через [method get_passive].
+var _passives: Dictionary = {}
+
+## Применяет постоянный бонус пассивного навыка из SkillTree.
+## Вызывается SkillTree._apply_node_effect(). Стакается при повторном вызове.
+## [br]Пример: [code]stats.apply_skill_passive("general_0")[/code]
+func apply_skill_passive(passive_id: String) -> void:
+	match passive_id:
+		# ── Общие (все классы) ─────────────────────────────────────────────
+		"general_0", "general_1":
+			_skill_hp_pct  += 0.05   # +5% макс HP
+			_skill_dmg_pct += 0.05   # +5% физ. урон
+		# ── Воин: Берсерк ─────────────────────────────────────────────────
+		"warrior_berserk_1":   # +15% урона при HP < 50% (триггер в CombatComponent)
+			_passives["low_hp_dmg_bonus"] = _passives.get("low_hp_dmg_bonus", 0.0) + 0.15
+		"warrior_berserk_3":   # Убийство: +5% HP (триггер в Main.wire_enemy)
+			_passives["kill_heal_pct"] = _passives.get("kill_heal_pct", 0.0) + 0.05
+		# ── Воин: Танк ────────────────────────────────────────────────────
+		"warrior_tank_1":
+			_skill_hp_pct  += 0.20   # +20% макс HP
+		"warrior_tank_3":
+			_skill_dmg_red += 0.15   # -15% входящий урон
+		# ── Воин: Паладин ─────────────────────────────────────────────────
+		"warrior_paladin_1":
+			_skill_light_dmg += 10.0  # +10 к урону светом
+		"warrior_paladin_3":   # Убийство светом: +3% HP (триггер)
+			_passives["light_kill_heal_pct"] = _passives.get("light_kill_heal_pct", 0.0) + 0.03
+		# ── Плут: Стеклянная пушка ────────────────────────────────────────
+		"rogue_glass_1":
+			_skill_dmg_pct += 0.20   # +20% урона
+			_skill_hp_pct  -= 0.10   # -10% HP
+		"rogue_glass_3":
+			_skill_crit_bonus += 15.0  # +15% шанс крита
+		_:
+			push_warning("StatsComponent: неизвестный passive_id '%s'" % passive_id)
+			return
+	stats_changed.emit()
+
+## Возвращает значение триггерного пассива (0.0 если не активен).
+## [br]Пример: [code]stats.get_passive("low_hp_dmg_bonus")[/code]
+func get_passive(id: String) -> float:
+	return float(_passives.get(id, 0.0))
+
+## Возвращает множитель снижения входящего урона от навыков (0.0–1.0).
+func skill_dmg_reduction() -> float:
+	return clampf(_skill_dmg_red, 0.0, 0.75)
+
+## Возвращает бонус к урону светом от навыков (Паладин).
+func skill_light_dmg() -> float:
+	return _skill_light_dmg
 
 func _save_to_player_data() -> void:
 	PlayerData.saved_str        = strength
