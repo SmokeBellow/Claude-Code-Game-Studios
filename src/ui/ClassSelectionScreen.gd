@@ -204,9 +204,6 @@ func _on_class_chosen(player_class: int) -> void:
 			PlayerData.apply_class_stats(stats)
 			break
 
-	# Разблокируем первое умение
-	PlayerData.unlock_abilities_for_level(3)
-
 	class_chosen.emit(player_class)
 	get_tree().paused = false
 	queue_free()

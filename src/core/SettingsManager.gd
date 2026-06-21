@@ -35,13 +35,8 @@ func _apply_window_mode() -> void:
 
 
 func _load() -> void:
-	var cfg := ConfigFile.new()
-	if cfg.load(_SAVE_PATH) != OK:
-		return
-	_fullscreen = bool(cfg.get_value(_SECTION, "fullscreen", _fullscreen))
+	pass
 
 
 func _save() -> void:
-	var cfg := ConfigFile.new()
-	cfg.set_value(_SECTION, "fullscreen", _fullscreen)
-	cfg.save(_SAVE_PATH)
+	pass

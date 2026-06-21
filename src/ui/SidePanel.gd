@@ -50,7 +50,7 @@ const _PAPERDOLL: Array[int] = [
 # Ссылки на узлы
 # ---------------------------------------------------------------------------
 
-var _panel: ColorRect
+var _panel: Control
 var _overlay: ColorRect
 var _toggle_btn: Button
 var _is_open: bool = false
@@ -162,37 +162,44 @@ func _build_toggle_btn() -> void:
 func _build_panel() -> void:
 	# Затемняющий оверлей за панелью
 	_overlay = ColorRect.new()
-	_overlay.color = Color(0.0, 0.0, 0.0, 0.55)
+	_overlay.color = UIStyle.COLOR_OVERLAY_MODAL
 	_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_overlay)
 
-	# Центральная панель фиксированного размера
-	_panel = ColorRect.new()
-	_panel.color = Color(0.09, 0.09, 0.13, 0.97)
-	_panel.set_anchors_preset(Control.PRESET_CENTER)
-	_panel.offset_left   = -PANEL_W * 0.5
-	_panel.offset_right  =  PANEL_W * 0.5
-	_panel.offset_top    = -PANEL_H * 0.5
-	_panel.offset_bottom =  PANEL_H * 0.5
-	_panel.process_mode  = Node.PROCESS_MODE_ALWAYS
-	add_child(_panel)
+	# Центральная панель фиксированного размера — Panel со стилем пергамента
+	var panel_node := Panel.new()
+	panel_node.set_anchors_preset(Control.PRESET_CENTER)
+	panel_node.offset_left   = -PANEL_W * 0.5
+	panel_node.offset_right  =  PANEL_W * 0.5
+	panel_node.offset_top    = -PANEL_H * 0.5
+	panel_node.offset_bottom =  PANEL_H * 0.5
+	panel_node.process_mode  = Node.PROCESS_MODE_ALWAYS
+	panel_node.add_theme_stylebox_override("panel", UIStyle.panel_style())
+	add_child(panel_node)
+	_panel = panel_node
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left",   12)
+	margin.add_theme_constant_override("margin_right",  12)
+	margin.add_theme_constant_override("margin_top",     8)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	panel_node.add_child(margin)
 
 	var vbox := VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vbox.add_theme_constant_override("separation", 0)
-	_panel.add_child(vbox)
+	vbox.add_theme_constant_override("separation", 4)
+	margin.add_child(vbox)
 
 	# Заголовок
 	var header := HBoxContainer.new()
-	header.custom_minimum_size.y = 36
+	header.custom_minimum_size.y = 40
 	vbox.add_child(header)
 
 	var title := Label.new()
-	title.text = "  Меню персонажа"
+	title.text = "Меню персонажа"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 17)
-	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	UIStyle.apply_heading(title, 20)
 	header.add_child(title)
 
 	var close_btn := Button.new()
@@ -204,9 +211,10 @@ func _build_panel() -> void:
 
 	vbox.add_child(UIStyle.separator())
 
-	# Вкладки
+	# Вкладки — тёплый стиль без рамки, подчёркивание у активной
 	var tab_bar := HBoxContainer.new()
-	tab_bar.custom_minimum_size.y = 36
+	tab_bar.custom_minimum_size.y = 34
+	tab_bar.add_theme_constant_override("separation", 2)
 	vbox.add_child(tab_bar)
 
 	var tab_labels: Array[String] = ["Атр.", "Экип.", "Инв.", "Задания", "Навыки"]
@@ -215,9 +223,15 @@ func _build_panel() -> void:
 		btn.text = tab_labels[i]
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		btn.toggle_mode = true
-		btn.add_theme_font_size_override("font_size", 13)
+		btn.add_theme_font_size_override("font_size", 14)
+		btn.add_theme_color_override("font_color", UIStyle.COLOR_TEXT)
+		btn.add_theme_color_override("font_hover_color", UIStyle.COLOR_HEADING)
+		btn.add_theme_color_override("font_pressed_color", UIStyle.COLOR_HEADING)
+		btn.add_theme_stylebox_override("normal",   UIStyle.tab_normal_style())
+		btn.add_theme_stylebox_override("hover",    UIStyle.btn_hover())
+		btn.add_theme_stylebox_override("pressed",  UIStyle.tab_active_style())
+		btn.add_theme_stylebox_override("disabled", UIStyle.btn_disabled())
 		btn.pressed.connect(_switch_tab.bind(i))
-		UIStyle.apply_btn(btn)
 		tab_bar.add_child(btn)
 		_tab_btns.append(btn)
 
@@ -231,7 +245,7 @@ func _build_panel() -> void:
 
 	var content := VBoxContainer.new()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content.add_theme_constant_override("separation", 6)
+	content.add_theme_constant_override("separation", 8)
 	scroll.add_child(content)
 
 	# Строим 5 view (только один виден одновременно)
@@ -253,14 +267,13 @@ func _build_attrs_view(parent: Control) -> Control:
 	parent.add_child(view)
 
 	var lbl := Label.new()
-	lbl.text = "  АТРИБУТЫ"
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.text = "АТРИБУТЫ"
+	UIStyle.apply_heading(lbl, 16)
 	view.add_child(lbl)
 
 	_attr_pts_label = Label.new()
 	_attr_pts_label.add_theme_font_size_override("font_size", 12)
-	_attr_pts_label.add_theme_color_override("font_color", Color(0.5, 1.0, 0.6))
+	_attr_pts_label.add_theme_color_override("font_color", UIStyle.COLOR_SUCCESS)
 	view.add_child(_attr_pts_label)
 
 	view.add_child(UIStyle.separator())
@@ -271,9 +284,10 @@ func _build_attrs_view(parent: Control) -> Control:
 		view.add_child(row)
 
 		var name_lbl := Label.new()
-		name_lbl.text = "  " + ATTR_NAMES[key]
+		name_lbl.text = ATTR_NAMES[key]
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_lbl.add_theme_font_size_override("font_size", 14)
+		name_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT)
 		row.add_child(name_lbl)
 
 		var val_lbl := Label.new()
@@ -304,9 +318,8 @@ func _build_equip_view(parent: Control) -> Control:
 	parent.add_child(view)
 
 	var lbl := Label.new()
-	lbl.text = "  ЭКИПИРОВКА"
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.text = "ЭКИПИРОВКА"
+	UIStyle.apply_heading(lbl, 16)
 	view.add_child(lbl)
 	view.add_child(UIStyle.separator())
 
@@ -368,7 +381,7 @@ func _make_equip_cell(slot: int) -> Control:
 	name_lbl.text = EQUIP_SLOTS[slot]
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.add_theme_font_size_override("font_size", 10)
-	name_lbl.add_theme_color_override("font_color", Color(0.45, 0.45, 0.5))
+	name_lbl.add_theme_color_override("font_color", Color(0.45, 0.38, 0.28))
 	cell.add_child(name_lbl)
 
 	return cell
@@ -378,7 +391,7 @@ func _apply_equip_slot_style(btn: Button, item: ItemResource) -> void:
 	var base: Color = item.rarity_color() if item != null else Color(0.35, 0.35, 0.4)
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(base.r * 0.2, base.g * 0.2, base.b * 0.2, 1.0) if item != null \
-		else Color(0.11, 0.11, 0.14, 1.0)
+		else Color(0.14, 0.11, 0.07, 1.0)
 	bg.border_color = base
 	var bw: int = 2 if item != null else 1
 	bg.border_width_left   = bw
@@ -401,7 +414,7 @@ func _apply_equip_slot_style(btn: Button, item: ItemResource) -> void:
 		btn.add_theme_font_size_override("font_size", 9)
 	else:
 		btn.text = "—"
-		btn.add_theme_color_override("font_color", Color(0.28, 0.28, 0.32))
+		btn.add_theme_color_override("font_color", Color(0.32, 0.26, 0.18))
 		btn.add_theme_font_size_override("font_size", 16)
 
 
@@ -420,15 +433,15 @@ func _build_bag_view(parent: Control) -> Control:
 	view.add_child(header_row)
 
 	var lbl := Label.new()
-	lbl.text = "  ИНВЕНТАРЬ"
-	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.text = "ИНВЕНТАРЬ"
+	UIStyle.apply_heading(lbl, 16)
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_row.add_child(lbl)
 
 	_bag_count_label = Label.new()
 	_bag_count_label.text = "0 / 20"
 	_bag_count_label.add_theme_font_size_override("font_size", 12)
-	_bag_count_label.add_theme_color_override("font_color", Color(0.55, 0.55, 0.60))
+	_bag_count_label.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	_bag_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	header_row.add_child(_bag_count_label)
 
@@ -484,9 +497,9 @@ func _build_bag_view(parent: Control) -> Control:
 
 	# Секция зелий — 4 слота (хоткеи 1–4)
 	var potion_hdr := Label.new()
-	potion_hdr.text = "  ЗЕЛЬЯ  (1–4)"
-	potion_hdr.add_theme_color_override("font_color", Color(0.65, 0.85, 0.65))
-	potion_hdr.add_theme_font_size_override("font_size", 13)
+	potion_hdr.text = "ЗЕЛЬЯ  (1–4)"
+	potion_hdr.add_theme_color_override("font_color", UIStyle.COLOR_HEADING)
+	potion_hdr.add_theme_font_size_override("font_size", 14)
 	view.add_child(potion_hdr)
 
 	var potion_row := HBoxContainer.new()
@@ -502,7 +515,7 @@ func _build_bag_view(parent: Control) -> Control:
 
 		# Иконка зелья
 		var icon_rect := ColorRect.new()
-		icon_rect.color = Color(0.12, 0.28, 0.12, 0.9)
+		icon_rect.color = Color(0.10, 0.14, 0.10, 0.9)
 		icon_rect.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		slot_box.add_child(icon_rect)
@@ -528,14 +541,14 @@ func _build_bag_view(parent: Control) -> Control:
 		key_lbl.text = "[%d]" % (i + 1)
 		key_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		key_lbl.add_theme_font_size_override("font_size", 11)
-		key_lbl.add_theme_color_override("font_color", Color(0.45, 0.45, 0.5))
+		key_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 		slot_box.add_child(key_lbl)
 
 	# Tooltip предмета (появляется при наведении)
 	_tooltip_box = PanelContainer.new()
 	var tooltip_style := StyleBoxFlat.new()
-	tooltip_style.bg_color = Color(0.07, 0.07, 0.11, 0.97)
-	tooltip_style.border_color = Color(0.35, 0.35, 0.45)
+	tooltip_style.bg_color = Color(0.12, 0.09, 0.06, 0.97)
+	tooltip_style.border_color = Color(0.42, 0.30, 0.14)
 	tooltip_style.set_border_width_all(1)
 	tooltip_style.set_corner_radius_all(4)
 	_tooltip_box.add_theme_stylebox_override("panel", tooltip_style)
@@ -560,13 +573,13 @@ func _build_bag_view(parent: Control) -> Control:
 
 	_tooltip_stats_lbl = Label.new()
 	_tooltip_stats_lbl.add_theme_font_size_override("font_size", 12)
-	_tooltip_stats_lbl.add_theme_color_override("font_color", Color(0.70, 0.70, 0.75))
+	_tooltip_stats_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	_tooltip_stats_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tvb.add_child(_tooltip_stats_lbl)
 
 	_tooltip_sell_lbl = Label.new()
 	_tooltip_sell_lbl.add_theme_font_size_override("font_size", 11)
-	_tooltip_sell_lbl.add_theme_color_override("font_color", Color(0.65, 0.60, 0.35))
+	_tooltip_sell_lbl.add_theme_color_override("font_color", UIStyle.COLOR_COOLDOWN)
 	tvb.add_child(_tooltip_sell_lbl)
 
 	return view
@@ -583,15 +596,15 @@ func _build_quests_view(parent: Control) -> Control:
 	parent.add_child(view)
 
 	var lbl := Label.new()
-	lbl.text = "  ЗАДАНИЯ"
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.text = "ЗАДАНИЯ"
+	UIStyle.apply_heading(lbl, 16)
 	view.add_child(lbl)
 	view.add_child(UIStyle.separator())
 
 	_quest_text = Label.new()
 	_quest_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_quest_text.add_theme_font_size_override("font_size", 14)
+	_quest_text.add_theme_color_override("font_color", UIStyle.COLOR_TEXT)
 	view.add_child(_quest_text)
 
 	return view
@@ -608,9 +621,8 @@ func _build_skills_view(parent: Control) -> Control:
 	parent.add_child(view)
 
 	var lbl := Label.new()
-	lbl.text = "  НАВЫКИ"
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.text = "НАВЫКИ"
+	UIStyle.apply_heading(lbl, 16)
 	view.add_child(lbl)
 	view.add_child(UIStyle.separator())
 
@@ -637,7 +649,7 @@ func _build_skills_view(parent: Control) -> Control:
 	var dash_name := Label.new()
 	dash_name.text = "Рывок  [Shift]"
 	dash_name.add_theme_font_size_override("font_size", 14)
-	dash_name.add_theme_color_override("font_color", Color(0.8, 0.9, 1.0))
+	dash_name.add_theme_color_override("font_color", UIStyle.COLOR_TEXT)
 	dash_info.add_child(dash_name)
 
 	var dash_desc := Label.new()
@@ -645,7 +657,7 @@ func _build_skills_view(parent: Control) -> Control:
 		Player.DASH_COOLDOWN, int(Player.DASH_DISTANCE)
 	]
 	dash_desc.add_theme_font_size_override("font_size", 12)
-	dash_desc.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
+	dash_desc.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	dash_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	dash_info.add_child(dash_desc)
 
@@ -657,15 +669,15 @@ func _build_skills_view(parent: Control) -> Control:
 	view.add_child(tree_hdr)
 
 	var tree_title := Label.new()
-	tree_title.text = "  Дерево навыков"
-	tree_title.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
-	tree_title.add_theme_font_size_override("font_size", 13)
+	tree_title.text = "Дерево навыков"
+	tree_title.add_theme_color_override("font_color", UIStyle.COLOR_HEADING)
+	tree_title.add_theme_font_size_override("font_size", 14)
 	tree_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tree_hdr.add_child(tree_title)
 
 	_skill_pts_label = Label.new()
 	_skill_pts_label.text = "Очков: 0"
-	_skill_pts_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	_skill_pts_label.add_theme_color_override("font_color", UIStyle.COLOR_HEADING)
 	_skill_pts_label.add_theme_font_size_override("font_size", 13)
 	tree_hdr.add_child(_skill_pts_label)
 
@@ -891,14 +903,14 @@ func _refresh_skill_tree() -> void:
 			var remaining: int = SkillTree.GENERAL_GATE - general_pts
 			var hint := Label.new()
 			hint.text = "  Ещё %d очка в «Общие» — откроет специализации" % remaining
-			hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+			hint.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 			hint.add_theme_font_size_override("font_size", 11)
 			hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			_skill_tree_container.add_child(hint)
 	else:
 		var hint := Label.new()
 		hint.text = "  Специализации откроются при выборе класса (ур. 3)"
-		hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		hint.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 		hint.add_theme_font_size_override("font_size", 11)
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_skill_tree_container.add_child(hint)
@@ -918,16 +930,16 @@ func _build_branch_ui(branch_key: String) -> void:
 	_skill_tree_container.add_child(hdr)
 
 	var branch_name_lbl := Label.new()
-	branch_name_lbl.text = "  %s" % _branch_display_name(branch_key)
+	branch_name_lbl.text = _branch_display_name(branch_key)
 	branch_name_lbl.add_theme_font_size_override("font_size", 12)
-	branch_name_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
+	branch_name_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT)
 	branch_name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hdr.add_child(branch_name_lbl)
 
 	var progress_lbl := Label.new()
 	progress_lbl.text = "%d / %d" % [pts_in, nodes_data.size()]
 	progress_lbl.add_theme_font_size_override("font_size", 11)
-	progress_lbl.add_theme_color_override("font_color", Color(0.55, 0.55, 0.55))
+	progress_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	hdr.add_child(progress_lbl)
 
 	if can_buy:
@@ -973,7 +985,7 @@ func _build_branch_ui(branch_key: String) -> void:
 			"ultimate": type_lbl.text = "[У]"
 			_:          type_lbl.text = "[?]"
 		type_lbl.add_theme_font_size_override("font_size", 10)
-		type_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		type_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 		type_lbl.custom_minimum_size.x = 26
 		row.add_child(type_lbl)
 
@@ -986,17 +998,17 @@ func _build_branch_ui(branch_key: String) -> void:
 		name_lbl.text = str(nd[1])
 		name_lbl.add_theme_font_size_override("font_size", 12)
 		if unlocked:
-			name_lbl.add_theme_color_override("font_color", Color(0.75, 1.0, 0.75))
+			name_lbl.add_theme_color_override("font_color", UIStyle.COLOR_SUCCESS)
 		elif is_next:
-			name_lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+			name_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT)
 		else:
-			name_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
+			name_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 		info_col.add_child(name_lbl)
 
 		var desc_lbl := Label.new()
 		desc_lbl.text = str(nd[2])
 		desc_lbl.add_theme_font_size_override("font_size", 10)
-		desc_lbl.add_theme_color_override("font_color", Color(0.45, 0.45, 0.45))
+		desc_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		info_col.add_child(desc_lbl)
 

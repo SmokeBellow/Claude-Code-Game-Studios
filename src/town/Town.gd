@@ -204,7 +204,7 @@ func _place_npcs() -> void:
 
 func _place_dungeon_gate() -> void:
 	var gate := DungeonGate.new()
-	gate.position = Vector2(2200, 800)
+	gate.position = Vector2(500, 800)  # DEV: ближе к спавну (2200, 800) — вернуть после плейтеста
 	add_child(gate)
 
 	# Табличка
@@ -212,7 +212,7 @@ func _place_dungeon_gate() -> void:
 	lbl.text = "▼ К данжу"
 	lbl.add_theme_font_size_override("font_size", 14)
 	lbl.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2))
-	lbl.position = Vector2(2160, 880)
+	lbl.position = Vector2(460, 880)
 	lbl.size = Vector2(100, 24)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(lbl)
@@ -230,7 +230,7 @@ func _spawn_player() -> void:
 	_player = player_scene.instantiate()
 	if PlayerData.returned_from_dungeon:
 		PlayerData.returned_from_dungeon = false
-		_player.global_position = Vector2(2080, 800)   # Рядом с воротами данжа (2200, 800)
+		_player.global_position = Vector2(380, 800)   # DEV: рядом с воротами (500, 800) — вернуть после плейтеста
 	elif PlayerData.was_resurrected:
 		_player.global_position = Vector2(TOWN_W * 0.5, TOWN_H * 0.5)
 	else:

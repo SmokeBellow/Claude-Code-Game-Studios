@@ -2,14 +2,16 @@ class_name WallTorch
 extends Node2D
 
 ## Настенный факел. Мигающий PointLight2D с тенями + простой визуал.
-## Свет выключается если между игроком и факелом есть стена (raycast culling).
+## Свет горит всегда и не проходит сквозь стены (shadow_enabled).
+## Визуал факела (пламя + палка) скрывается если между игроком и факелом стена.
 
 var _light: PointLight2D
+var _visual: Node2D          # контейнер для flame + stick
 var _time: float = 0.0
 var _player: Node2D = null
 
-const CULL_DIST_SQ: float  = 750.0 * 750.0  # дальше — выключить без raycast
-const RAYCAST_INTERVAL: float = 0.25         # как часто проверять линию видимости
+const CULL_DIST_SQ: float   = 750.0 * 750.0
+const RAYCAST_INTERVAL: float = 0.25
 
 var _raycast_timer: float = 0.0
 
@@ -26,17 +28,20 @@ func _ready() -> void:
 	_light.shadow_enabled = true
 	_light.shadow_filter = PointLight2D.SHADOW_FILTER_PCF5
 	_light.shadow_filter_smooth = 4.0
+	_light.enabled = true
 	add_child(_light)
-	# Рандомный сдвиг таймера чтобы все факелы не кастили raycast в один кадр
 	_raycast_timer = randf() * RAYCAST_INTERVAL
 
 
 func _build_visual() -> void:
+	_visual = Node2D.new()
+	add_child(_visual)
+
 	var stick := ColorRect.new()
 	stick.color = Color(0.40, 0.27, 0.13)
 	stick.size = Vector2(5.0, 10.0)
 	stick.position = Vector2(-2.5, -10.0)
-	add_child(stick)
+	_visual.add_child(stick)
 
 	var flame := Polygon2D.new()
 	var pts := PackedVector2Array()
@@ -45,39 +50,34 @@ func _build_visual() -> void:
 	flame.polygon = pts
 	flame.color = Color(1.0, 0.6, 0.1)
 	flame.position = Vector2(0.0, -16.0)
-	add_child(flame)
+	_visual.add_child(flame)
 
 
 func _process(delta: float) -> void:
 	_time += delta
 
-	# Обновляем кэш игрока если потерян
 	if _player == null or not is_instance_valid(_player):
 		var players := get_tree().get_nodes_in_group("player")
 		_player = players[0] as Node2D if not players.is_empty() else null
 
-	# Проверка видимости (throttled)
 	_raycast_timer -= delta
 	if _raycast_timer <= 0.0:
 		_raycast_timer = RAYCAST_INTERVAL
-		_update_visibility()
+		_update_visual_visibility()
 
-	if _light.enabled:
-		_light.energy = 1.6 + 0.25 * sin(_time * 8.1) + 0.1 * sin(_time * 15.3)
+	_light.energy = 1.6 + 0.25 * sin(_time * 8.1) + 0.1 * sin(_time * 15.3)
 
 
-func _update_visibility() -> void:
+func _update_visual_visibility() -> void:
 	if _player == null:
-		_light.enabled = true
+		_visual.visible = true
 		return
 
-	# Дистанция — быстрая проверка до raycast
 	var dist_sq := _player.global_position.distance_squared_to(global_position)
 	if dist_sq > CULL_DIST_SQ:
-		_light.enabled = false
+		_visual.visible = false
 		return
 
-	# Raycast от игрока до факела: если что-то стоит на пути — выключить
 	var space_state := get_world_2d().direct_space_state
 	var player_rid: RID = (_player as CollisionObject2D).get_rid()
 	var query := PhysicsRayQueryParameters2D.create(
@@ -87,7 +87,7 @@ func _update_visibility() -> void:
 		[player_rid]
 	)
 	var result := space_state.intersect_ray(query)
-	_light.enabled = result.is_empty()
+	_visual.visible = result.is_empty()
 
 
 ## Создаёт радиальную градиентную текстуру (кэшируется).

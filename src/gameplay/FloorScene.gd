@@ -30,6 +30,8 @@ var _guardian_alive: int = 0
 var _boss_gate: BossGate = null
 var _boss_room_center: Vector2 = Vector2.ZERO
 var _canvas_mod: CanvasModulate = null   # читкод F3 — скрыть затемнение
+var _wall_mat: ShaderMaterial = null     # шейдер яркости стен по расстоянию
+var _player_cache: Node2D = null
 
 
 ## Вызывается FloorManager. Строит тайлмап, коллизии, навигацию.
@@ -38,6 +40,7 @@ func setup(layout: FloorGenerator.FloorLayout, floor_index: int) -> void:
 	_floor_index = floor_index
 	_build_tilemap()
 	_build_collision()
+	_build_occluders()
 	_build_lighting()
 	_build_nav()
 	_setup_camera()
@@ -66,36 +69,72 @@ func entry_world_pos() -> Vector2:
 func _build_tilemap() -> void:
 	var floor_color := FLOOR_COLORS[clampi(_floor_index - 1, 0, 2)]
 
-	var ts := TileSet.new()
-	ts.tile_size = Vector2i(TILE, TILE)
-
-	# --- Тайл пола (solid color) ---
+	# Пол — освещается TorchLight (с тенями), базовый ambient = 2% от CanvasModulate.
+	var floor_ts := TileSet.new()
+	floor_ts.tile_size = Vector2i(TILE, TILE)
 	var floor_src := TileSetAtlasSource.new()
 	floor_src.texture = _make_solid_tex(floor_color)
 	floor_src.texture_region_size = Vector2i(TILE, TILE)
 	floor_src.create_tile(Vector2i(0, 0))
-	var floor_id := ts.add_source(floor_src)
+	floor_ts.add_source(floor_src)
+	var floor_tml := TileMapLayer.new()
+	floor_tml.name = "FloorTileMapLayer"
+	floor_tml.z_index = -1
+	floor_tml.tile_set = floor_ts
+	add_child(floor_tml)
 
-	# --- Тайл стены (PNG если есть, иначе цвет) ---
+	# Стены — TorchLight не достигает их (окклюдеры), но modulate×CanvasModulate = 0.75.
+	# Формула: wall_modulate = 0.75 / CanvasModulate(0.02) = 37.5
+	var wall_ts := TileSet.new()
+	wall_ts.tile_size = Vector2i(TILE, TILE)
 	var wall_src := TileSetAtlasSource.new()
 	var wall_tex := _load_scaled_tex("res://assets/art/environment/wall_stone.png")
 	wall_src.texture = wall_tex if wall_tex != null else _make_solid_tex(WALL_COLOR)
 	wall_src.texture_region_size = Vector2i(TILE, TILE)
 	wall_src.create_tile(Vector2i(0, 0))
-	var wall_id := ts.add_source(wall_src)
+	wall_ts.add_source(wall_src)
+	var wall_tml := TileMapLayer.new()
+	wall_tml.name = "WallTileMapLayer"
+	wall_tml.z_index = -1
+	wall_tml.tile_set = wall_ts
 
-	var tml := TileMapLayer.new()
-	tml.name = "TileMapLayer"
-	tml.z_index = -1
-	tml.tile_set = ts
-	add_child(tml)
+	# Шейдер: 100% яркости внутри радиуса факела, 1% снаружи.
+	# Факторы компенсируют CanvasModulate=0.02: 50*0.02=1.0 и 0.5*0.02=0.01.
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+
+uniform vec2 player_world_pos = vec2(0.0, 0.0);
+uniform float light_radius : hint_range(0.0, 2000.0) = 288.0;
+
+varying vec2 world_pos;
+
+void vertex() {
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy;
+}
+
+void fragment() {
+	vec4 col = texture(TEXTURE, UV);
+	float dist = length(world_pos - player_world_pos);
+	float t = clamp(dist / light_radius, 0.0, 1.0);
+	float factor = mix(50.0, 0.5, t);
+	COLOR = col * factor;
+}
+"""
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	mat.set_shader_parameter("light_radius", 288.0)
+	wall_tml.material = mat
+	_wall_mat = mat
+
+	add_child(wall_tml)
 
 	for x in range(_layout.width):
 		for y in range(_layout.height):
 			if _layout.get_tile(x, y) == T_FLOOR:
-				tml.set_cell(Vector2i(x, y), floor_id, Vector2i(0, 0))
+				floor_tml.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
 			elif _has_floor_neighbor(x, y):
-				tml.set_cell(Vector2i(x, y), wall_id, Vector2i(0, 0))
+				wall_tml.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
 
 
 func _make_solid_tex(color: Color) -> ImageTexture:
@@ -146,11 +185,19 @@ func _build_collision() -> void:
 					run_x = -1
 
 
-func _build_lighting() -> void:
-	if _floor_index == 3:
+func _process(_delta: float) -> void:
+	if _wall_mat == null:
 		return
+	if _player_cache == null or not is_instance_valid(_player_cache):
+		_player_cache = get_tree().get_first_node_in_group("player") as Node2D
+	if _player_cache != null:
+		_wall_mat.set_shader_parameter("player_world_pos", _player_cache.global_position)
+
+
+func _build_lighting() -> void:
 	var mod := CanvasModulate.new()
-	mod.color = Color(0.25, 0.20, 0.35)   # тёмная атмосфера, но видимая без факелов
+	# 2% ambient для пола за стенами. Стены управляются шейдером (100% / 1%) независимо.
+	mod.color = Color(0.02, 0.02, 0.02)
 	add_child(mod)
 	_canvas_mod = mod
 	var player := get_tree().get_first_node_in_group("player")
@@ -169,18 +216,59 @@ func _add_wall_body(tx: int, ty: int, tw: int, th: int) -> void:
 	cs.shape = shape
 	body.add_child(cs)
 	add_child(body)
-	var occ := LightOccluder2D.new()
-	var poly := OccluderPolygon2D.new()
-	var wx0 := float(tx * TILE)
-	var wy0 := float(ty * TILE)
-	var wx1 := float((tx + tw) * TILE)
-	var wy1 := float((ty + th) * TILE)
-	poly.polygon = PackedVector2Array([
-		Vector2(wx0, wy0), Vector2(wx1, wy0),
-		Vector2(wx1, wy1), Vector2(wx0, wy1)
-	])
-	occ.occluder = poly
-	add_child(occ)
+
+
+# ---------------------------------------------------------------------------
+# Окклюдеры: линии на границах стена→пол (не заливка тайла, чтобы стена была видна)
+# ---------------------------------------------------------------------------
+
+func _build_occluders() -> void:
+	# Собираем направленные рёбра на границе стена→пол (обход против часовой, пол слева).
+	# Это гарантирует связность: рёбра соседних тайлов разделяют вершины и образуют замкнутые петли.
+	var edge_map: Dictionary = {}  # Vector2 start → Vector2 end
+
+	for y in range(_layout.height):
+		for x in range(_layout.width):
+			if _layout.get_tile(x, y) != T_WALL:
+				continue
+			var x0 := float(x * TILE)
+			var y0 := float(y * TILE)
+			var x1 := float((x + 1) * TILE)
+			var y1 := float((y + 1) * TILE)
+
+			# Пол снизу (y+1): ребро идёт ВЛЕВО по нижней грани стены
+			if y + 1 < _layout.height and _layout.get_tile(x, y + 1) == T_FLOOR:
+				edge_map[Vector2(x1, y1)] = Vector2(x0, y1)
+			# Пол сверху (y-1): ребро идёт ВПРАВО по верхней грани
+			if y - 1 >= 0 and _layout.get_tile(x, y - 1) == T_FLOOR:
+				edge_map[Vector2(x0, y0)] = Vector2(x1, y0)
+			# Пол справа (x+1): ребро идёт ВНИЗ по правой грани
+			if x + 1 < _layout.width and _layout.get_tile(x + 1, y) == T_FLOOR:
+				edge_map[Vector2(x1, y0)] = Vector2(x1, y1)
+			# Пол слева (x-1): ребро идёт ВВЕРХ по левой грани
+			if x - 1 >= 0 and _layout.get_tile(x - 1, y) == T_FLOOR:
+				edge_map[Vector2(x0, y1)] = Vector2(x0, y0)
+
+	# Обходим цепочки рёбер и формируем замкнутые полигоны
+	var visited: Dictionary = {}
+	for start: Vector2 in edge_map:
+		if start in visited:
+			continue
+		var polygon: PackedVector2Array = PackedVector2Array()
+		var current := start
+		var guard := edge_map.size() + 1
+		while current not in visited and guard > 0:
+			guard -= 1
+			visited[current] = true
+			polygon.append(current)
+			current = edge_map.get(current, start)
+		if polygon.size() >= 3:
+			var occ := LightOccluder2D.new()
+			var poly := OccluderPolygon2D.new()
+			poly.polygon = polygon
+			occ.occluder = poly
+			occ.occluder_light_mask = 1
+			add_child(occ)
 
 
 # ---------------------------------------------------------------------------
