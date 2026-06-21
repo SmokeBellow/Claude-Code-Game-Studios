@@ -14,7 +14,7 @@ var _buy_stock: Array[Dictionary] = []
 # UI nodes
 # ---------------------------------------------------------------------------
 
-var _panel: ColorRect
+var _panel: Panel
 var _title_label: Label
 var _gold_label: Label
 var _buy_list: VBoxContainer
@@ -39,7 +39,7 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.6)
+	bg.color = UIStyle.COLOR_OVERLAY_MODAL
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
@@ -49,9 +49,9 @@ func _build_ui() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 
-	_panel = ColorRect.new()
-	_panel.color = Color(0.1, 0.1, 0.15, 0.98)
+	_panel = Panel.new()
 	_panel.custom_minimum_size = Vector2(700, 500)
+	_panel.add_theme_stylebox_override("panel", UIStyle.panel_style())
 	center.add_child(_panel)
 
 	# Корневой VBoxContainer внутри панели
@@ -75,7 +75,7 @@ func _build_ui() -> void:
 	_title_label = Label.new()
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_title_label.add_theme_font_size_override("font_size", 20)
-	_title_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	UIStyle.apply_heading(_title_label, 20)
 	header_hbox.add_child(_title_label)
 
 	var economy_vbox := VBoxContainer.new()
@@ -86,13 +86,13 @@ func _build_ui() -> void:
 	_gold_label = Label.new()
 	_gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_gold_label.add_theme_font_size_override("font_size", 16)
-	_gold_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
+	_gold_label.add_theme_color_override("font_color", UIStyle.COLOR_HEADING)
 	economy_vbox.add_child(_gold_label)
 
 	_potions_label = Label.new()
 	_potions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_potions_label.add_theme_font_size_override("font_size", 12)
-	_potions_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
+	_potions_label.add_theme_color_override("font_color", UIStyle.COLOR_SUCCESS)
 	economy_vbox.add_child(_potions_label)
 
 	var close_btn := Button.new()
@@ -229,7 +229,7 @@ func _add_buy_row(item: ItemResource, price: int, qty: int) -> void:
 		name_lbl.add_theme_color_override("font_color", item.rarity_color())
 	else:
 		name_lbl.text = "Зелье здоровья (+50 HP)"
-		name_lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+		name_lbl.add_theme_color_override("font_color", UIStyle.COLOR_SUCCESS)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(name_lbl)
 
@@ -237,13 +237,13 @@ func _add_buy_row(item: ItemResource, price: int, qty: int) -> void:
 		var bonus_lbl := Label.new()
 		bonus_lbl.text = item.bonus_summary()
 		bonus_lbl.add_theme_font_size_override("font_size", 12)
-		bonus_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+		bonus_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 		bonus_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(bonus_lbl)
 
 	var price_lbl := Label.new()
 	price_lbl.text = "%dg" % price
-	price_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
+	price_lbl.add_theme_color_override("font_color", UIStyle.COLOR_HEADING)
 	price_lbl.custom_minimum_size.x = 60
 	row.add_child(price_lbl)
 
@@ -304,7 +304,7 @@ func _add_sell_row(item: ItemResource) -> void:
 
 	var price_lbl := Label.new()
 	price_lbl.text = "%dg" % item.sell_value()
-	price_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.0))
+	price_lbl.add_theme_color_override("font_color", UIStyle.COLOR_HEADING)
 	price_lbl.custom_minimum_size.x = 60
 	row.add_child(price_lbl)
 

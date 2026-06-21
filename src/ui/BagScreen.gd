@@ -22,7 +22,7 @@ func _ready() -> void:
 	add_child(_root)
 
 	var bg := ColorRect.new()
-	bg.color = Color(0.0, 0.0, 0.0, 0.55)
+	bg.color = UIStyle.COLOR_OVERLAY_MODAL
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_root.add_child(bg)
 
@@ -33,19 +33,27 @@ func _ready() -> void:
 	panel.set_anchor(SIDE_TOP,    0.5); panel.set_anchor(SIDE_BOTTOM, 0.5)
 	panel.set_offset(SIDE_LEFT,   -pw / 2.0); panel.set_offset(SIDE_RIGHT,   pw / 2.0)
 	panel.set_offset(SIDE_TOP,    -ph / 2.0); panel.set_offset(SIDE_BOTTOM,  ph / 2.0)
+	panel.add_theme_stylebox_override("panel", UIStyle.panel_style())
 	_root.add_child(panel)
 
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left",   12)
+	margin.add_theme_constant_override("margin_right",  12)
+	margin.add_theme_constant_override("margin_top",     8)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	panel.add_child(margin)
+
 	var vbox := VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vbox.add_theme_constant_override("separation", 4)
-	panel.add_child(vbox)
+	vbox.add_theme_constant_override("separation", 6)
+	margin.add_child(vbox)
 
 	var title := Label.new()
 	title.text = "СУМКА"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 20)
+	UIStyle.apply_heading(title, 20)
 	vbox.add_child(title)
-	vbox.add_child(HSeparator.new())
+	vbox.add_child(UIStyle.separator())
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -56,7 +64,7 @@ func _ready() -> void:
 	_item_list.add_theme_constant_override("separation", 3)
 	scroll.add_child(_item_list)
 
-	vbox.add_child(HSeparator.new())
+	vbox.add_child(UIStyle.separator())
 
 	var bottom := HBoxContainer.new()
 	vbox.add_child(bottom)
@@ -69,6 +77,7 @@ func _ready() -> void:
 		if eq != null and eq.has_method("open"):
 			eq.open()
 	)
+	UIStyle.apply_btn(eq_btn)
 	bottom.add_child(eq_btn)
 
 	var spacer := Control.new()
@@ -77,8 +86,8 @@ func _ready() -> void:
 
 	var hint := Label.new()
 	hint.text = "[I] закрыть"
-	hint.add_theme_font_size_override("font_size", 13)
-	hint.add_theme_color_override("font_color", Color(0.55, 0.55, 0.55))
+	hint.add_theme_font_size_override("font_size", 12)
+	hint.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	bottom.add_child(hint)
 
 
@@ -128,7 +137,7 @@ func _refresh() -> void:
 		var lbl := Label.new()
 		lbl.text = "Сумка пуста"
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.add_theme_color_override("font_color", Color(0.45, 0.45, 0.45))
+		lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 		_item_list.add_child(lbl)
 		return
 
@@ -137,6 +146,7 @@ func _refresh() -> void:
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.add_theme_font_size_override("font_size", 14)
 		btn.text = "%s   %s   [надеть]" % [item.display_name, item.bonus_summary()]
+		UIStyle.apply_btn(btn)
 		btn.add_theme_color_override("font_color", item.rarity_color())
 		var captured := item
 		btn.pressed.connect(func():
