@@ -16,7 +16,7 @@ func _ready() -> void:
 
 	# Фон.
 	var bg := ColorRect.new()
-	bg.color = Color(0.06, 0.06, 0.10)
+	bg.color = UIStyle.COLOR_SCENE_BG
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_child(bg)
 
@@ -37,8 +37,7 @@ func _ready() -> void:
 	var title := Label.new()
 	title.text = "ХРОНИКИ\nОДНОГО ГЕРОЯ"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 40)
-	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	UIStyle.apply_heading(title, 40)
 	vbox.add_child(title)
 
 	var spacer := Control.new()
@@ -68,7 +67,7 @@ func _ready() -> void:
 	version.set_offset(SIDE_LEFT, -100.0)
 	version.set_offset(SIDE_TOP, -32.0)
 	version.add_theme_font_size_override("font_size", 13)
-	version.add_theme_color_override("font_color", Color(0.45, 0.45, 0.45))
+	version.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	root.add_child(version)
 
 

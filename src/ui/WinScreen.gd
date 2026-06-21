@@ -50,15 +50,21 @@ func _ready() -> void:
 	panel.set_offset(SIDE_BOTTOM,  ph / 2.0)
 	_root.add_child(panel)
 
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left",   16)
+	margin.add_theme_constant_override("margin_right",  16)
+	margin.add_theme_constant_override("margin_top",    12)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	panel.add_child(margin)
+
 	var vbox := VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 10)
-	panel.add_child(vbox)
+	margin.add_child(vbox)
 
 	_title_label = Label.new()
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title_label.add_theme_font_size_override("font_size", 36)
-	_title_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+	UIStyle.apply_heading(_title_label, 36)
 	vbox.add_child(_title_label)
 
 	vbox.add_child(UIStyle.separator())
@@ -66,14 +72,13 @@ func _ready() -> void:
 	_flavor_label = Label.new()
 	_flavor_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_flavor_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_flavor_label.add_theme_font_size_override("font_size", 16)
-	_flavor_label.add_theme_color_override("font_color", Color(0.78, 0.78, 0.78))
+	UIStyle.apply_text(_flavor_label, 16)
 	vbox.add_child(_flavor_label)
 
 	_xp_label = Label.new()
 	_xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_xp_label.add_theme_font_size_override("font_size", 18)
-	_xp_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.5))
+	_xp_label.add_theme_color_override("font_color", UIStyle.COLOR_SUCCESS)
 	vbox.add_child(_xp_label)
 
 	var spacer := Control.new()

@@ -82,10 +82,17 @@ func _build_ui() -> void:
 	panel.set_offset(SIDE_BOTTOM,  ph / 2.0)
 	_root.add_child(panel)
 
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left",   14)
+	margin.add_theme_constant_override("margin_right",  14)
+	margin.add_theme_constant_override("margin_top",    10)
+	margin.add_theme_constant_override("margin_bottom", 14)
+	panel.add_child(margin)
+
 	var vbox := VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 8)
-	panel.add_child(vbox)
+	margin.add_child(vbox)
 
 	# Заголовок.
 	var title := Label.new()
@@ -113,6 +120,7 @@ func _build_ui() -> void:
 		var name_lbl := Label.new()
 		name_lbl.text = ATTR_LABELS[attr_name]
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT)
 		row.add_child(name_lbl)
 
 		var val_lbl := Label.new()

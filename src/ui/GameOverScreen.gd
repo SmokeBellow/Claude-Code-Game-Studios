@@ -18,7 +18,7 @@ func _ready() -> void:
 	add_child(_root)
 
 	var bg := ColorRect.new()
-	bg.color = Color(0.0, 0.0, 0.0, 0.78)
+	bg.color = UIStyle.COLOR_OVERLAY_MODAL
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_root.add_child(bg)
 
@@ -36,23 +36,30 @@ func _ready() -> void:
 	panel.set_offset(SIDE_BOTTOM,  ph / 2.0)
 	_root.add_child(panel)
 
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left",   16)
+	margin.add_theme_constant_override("margin_right",  16)
+	margin.add_theme_constant_override("margin_top",    12)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	panel.add_child(margin)
+
 	var vbox := VBoxContainer.new()
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 14)
-	panel.add_child(vbox)
+	margin.add_child(vbox)
 
 	var title := Label.new()
 	title.text = "ИГРА ОКОНЧЕНА"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 38)
-	title.add_theme_color_override("font_color", Color(0.9, 0.2, 0.2))
+	title.add_theme_color_override("font_color", UIStyle.COLOR_DANGER)
 	vbox.add_child(title)
 
 	var subtitle := Label.new()
 	subtitle.text = "Герой пал в бою"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_font_size_override("font_size", 16)
-	subtitle.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
+	subtitle.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	vbox.add_child(subtitle)
 
 	vbox.add_child(UIStyle.separator())

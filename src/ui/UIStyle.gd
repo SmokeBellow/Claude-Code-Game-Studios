@@ -19,6 +19,9 @@ const COLOR_OVERLAY_MODAL: Color = Color(0.0, 0.0, 0.0, 0.70)
 const COLOR_CLASS_WARRIOR: Color = Color(0.95, 0.45, 0.3)
 const COLOR_CLASS_MAGE:    Color = Color(0.4, 0.6, 1.0)
 const COLOR_CLASS_ROGUE:   Color = Color(0.3, 0.85, 0.6)
+const COLOR_ERROR:         Color = Color(1.0, 0.40, 0.30)   # ошибки, предупреждения
+const COLOR_DANGER:        Color = Color(0.90, 0.20, 0.20)  # поражение, опасность
+const COLOR_SCENE_BG:      Color = Color(0.06, 0.04, 0.02)  # фон сцены (главное меню)
 
 # ---------------------------------------------------------------------------
 # Панели
@@ -145,7 +148,7 @@ static func _ensure_fonts() -> void:
 		_font_body = load(B)
 
 
-## Шрифт заголовков (Cinzel). Возвращает null если файл не добавлен — UI работает с дефолтом.
+## Шрифт заголовков (CormorantGaramond). Возвращает null если файл не добавлен — UI работает с дефолтом.
 static func font_heading() -> Font:
 	_ensure_fonts()
 	return _font_heading

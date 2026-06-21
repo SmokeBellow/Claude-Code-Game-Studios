@@ -381,14 +381,14 @@ func _make_equip_cell(slot: int) -> Control:
 	name_lbl.text = EQUIP_SLOTS[slot]
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.add_theme_font_size_override("font_size", 10)
-	name_lbl.add_theme_color_override("font_color", Color(0.45, 0.38, 0.28))
+	name_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	cell.add_child(name_lbl)
 
 	return cell
 
 
 func _apply_equip_slot_style(btn: Button, item: ItemResource) -> void:
-	var base: Color = item.rarity_color() if item != null else Color(0.35, 0.35, 0.4)
+	var base: Color = item.rarity_color() if item != null else UIStyle.COLOR_TEXT_DIM
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(base.r * 0.2, base.g * 0.2, base.b * 0.2, 1.0) if item != null \
 		else Color(0.14, 0.11, 0.07, 1.0)
@@ -414,7 +414,7 @@ func _apply_equip_slot_style(btn: Button, item: ItemResource) -> void:
 		btn.add_theme_font_size_override("font_size", 9)
 	else:
 		btn.text = "—"
-		btn.add_theme_color_override("font_color", Color(0.32, 0.26, 0.18))
+		btn.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 		btn.add_theme_font_size_override("font_size", 16)
 
 
@@ -515,7 +515,7 @@ func _build_bag_view(parent: Control) -> Control:
 
 		# Иконка зелья
 		var icon_rect := ColorRect.new()
-		icon_rect.color = Color(0.10, 0.14, 0.10, 0.9)
+		icon_rect.color = Color(0.08, 0.10, 0.06, 0.9)
 		icon_rect.custom_minimum_size = Vector2(SLOT_SIZE, SLOT_SIZE)
 		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		slot_box.add_child(icon_rect)
@@ -532,7 +532,7 @@ func _build_bag_view(parent: Control) -> Control:
 		count_lbl.text = "0"
 		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		count_lbl.add_theme_font_size_override("font_size", 14)
-		count_lbl.add_theme_color_override("font_color", Color(0.7, 1.0, 0.7))
+		count_lbl.add_theme_color_override("font_color", UIStyle.COLOR_SUCCESS)
 		slot_box.add_child(count_lbl)
 		_potion_slot_labels.append(count_lbl)
 
@@ -547,8 +547,8 @@ func _build_bag_view(parent: Control) -> Control:
 	# Tooltip предмета (появляется при наведении)
 	_tooltip_box = PanelContainer.new()
 	var tooltip_style := StyleBoxFlat.new()
-	tooltip_style.bg_color = Color(0.12, 0.09, 0.06, 0.97)
-	tooltip_style.border_color = Color(0.42, 0.30, 0.14)
+	tooltip_style.bg_color = UIStyle.COLOR_PANEL_BG
+	tooltip_style.border_color = UIStyle.COLOR_PANEL_BORDER
 	tooltip_style.set_border_width_all(1)
 	tooltip_style.set_corner_radius_all(4)
 	_tooltip_box.add_theme_stylebox_override("panel", tooltip_style)
@@ -779,11 +779,11 @@ func _refresh_bag() -> void:
 	var max_slots: int = 20  # Inventory.BAG_MAX_SIZE
 
 	# Счётчик заполненности
-	var count_color: Color = Color(0.55, 0.55, 0.60)
+	var count_color: Color = UIStyle.COLOR_TEXT_DIM
 	if bag.size() >= max_slots:
-		count_color = Color(1.0, 0.45, 0.35)   # красный — полная
+		count_color = UIStyle.COLOR_DANGER
 	elif bag.size() >= max_slots * 0.8:
-		count_color = Color(1.0, 0.75, 0.3)    # жёлтый — почти полная
+		count_color = UIStyle.COLOR_COOLDOWN
 	if _bag_count_label != null:
 		_bag_count_label.text = "%d / %d" % [bag.size(), max_slots]
 		_bag_count_label.add_theme_color_override("font_color", count_color)
@@ -804,7 +804,7 @@ func _refresh_bag() -> void:
 		if i < _potion_slot_labels.size():
 			var count: int = PlayerData.potion_slots[i]
 			_potion_slot_labels[i].text = str(count)
-			var c: Color = Color(0.7, 1.0, 0.7) if count > 0 else Color(0.35, 0.35, 0.35)
+			var c: Color = UIStyle.COLOR_SUCCESS if count > 0 else UIStyle.COLOR_TEXT_DIM
 			_potion_slot_labels[i].add_theme_color_override("font_color", c)
 
 
@@ -860,8 +860,8 @@ func _make_bag_slot_empty() -> Button:
 	btn.mouse_filter = Control.MOUSE_FILTER_PASS  # не перехватывает события
 
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.10, 0.10, 0.12, 1.0)
-	bg.border_color = Color(0.20, 0.20, 0.24)
+	bg.bg_color = Color(0.12, 0.09, 0.06, 1.0)
+	bg.border_color = Color(0.24, 0.18, 0.10)
 	bg.border_width_left   = 1
 	bg.border_width_right  = 1
 	bg.border_width_top    = 1
@@ -870,7 +870,7 @@ func _make_bag_slot_empty() -> Button:
 	btn.add_theme_stylebox_override("hover",    bg)
 	btn.add_theme_stylebox_override("pressed",  bg)
 	btn.add_theme_stylebox_override("disabled", bg)
-	btn.add_theme_color_override("font_color", Color(0.22, 0.22, 0.26))
+	btn.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	btn.add_theme_font_size_override("font_size", 18)
 	btn.text = "·"
 	return btn
@@ -966,13 +966,13 @@ func _build_branch_ui(branch_key: String) -> void:
 		var status_lbl := Label.new()
 		if unlocked:
 			status_lbl.text = "  ✓"
-			status_lbl.add_theme_color_override("font_color", Color(0.35, 0.85, 0.35))
+			status_lbl.add_theme_color_override("font_color", UIStyle.COLOR_SUCCESS)
 		elif is_next:
 			status_lbl.text = "  ▷"
-			status_lbl.add_theme_color_override("font_color", Color(0.9, 0.85, 0.3))
+			status_lbl.add_theme_color_override("font_color", UIStyle.COLOR_HEADING)
 		else:
 			status_lbl.text = "  ○"
-			status_lbl.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
+			status_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 		status_lbl.add_theme_font_size_override("font_size", 12)
 		status_lbl.custom_minimum_size.x = 28
 		row.add_child(status_lbl)

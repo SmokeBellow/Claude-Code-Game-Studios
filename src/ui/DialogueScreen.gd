@@ -16,7 +16,7 @@ var _current_node: String = ""
 # Узлы (созданы в _ready через код, без .tscn)
 # ---------------------------------------------------------------------------
 
-var _panel: ColorRect
+var _panel: Panel
 var _portrait: ColorRect
 var _speaker_label: Label
 var _text_label: RichTextLabel
@@ -38,14 +38,14 @@ func _ready() -> void:
 func _build_ui() -> void:
 	# Затемняющий фон
 	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.55)
+	bg.color = UIStyle.COLOR_OVERLAY_MODAL
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
 	# Панель диалога — нижние 35% экрана через якоря, без пиксельных размеров
-	_panel = ColorRect.new()
-	_panel.color = Color(0.08, 0.08, 0.12, 0.97)
+	_panel = Panel.new()
+	_panel.add_theme_stylebox_override("panel", UIStyle.panel_style())
 	_panel.set_anchor(SIDE_LEFT,   0.0)
 	_panel.set_anchor(SIDE_RIGHT,  1.0)
 	_panel.set_anchor(SIDE_TOP,    0.65)
@@ -91,8 +91,7 @@ func _build_ui() -> void:
 
 	_speaker_label = Label.new()
 	_speaker_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_speaker_label.add_theme_font_size_override("font_size", 18)
-	_speaker_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	UIStyle.apply_heading(_speaker_label, 18)
 	top_row.add_child(_speaker_label)
 
 	_continue_button = Button.new()

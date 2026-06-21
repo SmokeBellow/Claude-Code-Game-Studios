@@ -74,7 +74,7 @@ func show_selection() -> void:
 
 func _build() -> void:
 	var bg := ColorRect.new()
-	bg.color = Color(0.0, 0.0, 0.0, 0.78)
+	bg.color = UIStyle.COLOR_OVERLAY_MODAL
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
@@ -92,15 +92,14 @@ func _build() -> void:
 	var title := Label.new()
 	title.text = "Выбери класс"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 26)
-	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+	UIStyle.apply_heading(title, 26)
 	outer.add_child(title)
 
 	var subtitle := Label.new()
 	subtitle.text = "Это решение необратимо. Первое умение откроется сразу."
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_font_size_override("font_size", 12)
-	subtitle.add_theme_color_override("font_color", Color(0.55, 0.55, 0.55))
+	subtitle.add_theme_color_override("font_color", UIStyle.COLOR_TEXT_DIM)
 	outer.add_child(subtitle)
 
 	# Карточки
@@ -117,7 +116,7 @@ func _make_card(data: Dictionary) -> Control:
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.08, 0.12, 1.0)
+	style.bg_color = UIStyle.COLOR_PANEL_BG
 	var c: Color = data["color"]
 	style.border_color = c
 	style.border_width_left   = 2
@@ -161,7 +160,7 @@ func _make_card(data: Dictionary) -> Control:
 	desc_lbl.text = data["desc"]
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_lbl.add_theme_font_size_override("font_size", 12)
-	desc_lbl.add_theme_color_override("font_color", Color(0.75, 0.75, 0.75))
+	desc_lbl.add_theme_color_override("font_color", UIStyle.COLOR_TEXT)
 	vbox.add_child(desc_lbl)
 
 	vbox.add_child(UIStyle.separator())
@@ -174,7 +173,7 @@ func _make_card(data: Dictionary) -> Control:
 	abilities_lbl.text = "\n".join(lines)
 	abilities_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	abilities_lbl.add_theme_font_size_override("font_size", 11)
-	abilities_lbl.add_theme_color_override("font_color", Color(0.55, 0.8, 0.55))
+	abilities_lbl.add_theme_color_override("font_color", UIStyle.COLOR_SUCCESS)
 	vbox.add_child(abilities_lbl)
 
 	vbox.add_child(UIStyle.separator())
